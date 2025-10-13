@@ -37,6 +37,7 @@ class KategoriNavigator {
         foreach ($this->kategorier as $id => $kategori) {
             if (stripos($kategori['navn'], $søkeord) !== false) {
                 return $id;
+            
             }
         }
         return null;

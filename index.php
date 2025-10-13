@@ -9,12 +9,9 @@
 
 <h1>Laveste pris på matvare ChatBot!</h1>
 
-<form action="">
-    <input type=text placeholder="Denne fungerer ikke lol"> </input>
 
-</form>
+<a href="inputSearch.php">Test for søk fra inputfelt (EAN) </br></a>
+<a href="finnKategori.php">finn kategori test</a>
 
-<a href="test_api.php">Test på melk</a>
-    
 </body>
 </html>
