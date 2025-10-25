@@ -1,11 +1,6 @@
 <?php
-require_once __DIR__ . '/config/config.php';
-require_once __DIR__ . '/vendor/autoload.php';
-require_once 'inc/KassalappApi_inc.php';
+require_once __DIR__ . '/KassalappAPI.php';
 
-$api = new KassalappAPI(KASSALAPP_API_KEY);
-
-//finner priser fra butikker
 class StrekkkodeScanner {
     private $api;
 
@@ -28,7 +23,6 @@ class StrekkkodeScanner {
     }
 
     private function formaterProduktInfo($data) {
-        // Sjekk at products finnes
         if (empty($data['products']) || !is_array($data['products'])) {
             return null;
         }
@@ -42,31 +36,21 @@ class StrekkkodeScanner {
             'priser' => []
         ];
 
-        // Hent alle butikker og priser
         foreach ($data['products'] as $produkt) {
-        $pris = $produkt['current_price']['price'] ?? null;
-        $butikk = $produkt['store']['name'] ?? null;
+            $pris = $produkt['current_price']['price'] ?? null;
+            $butikk = $produkt['store']['name'] ?? null;
 
-        // Hopp over produkter uten pris eller butikk
-        if (empty($pris) || empty($butikk)) {
-            continue;
+            if (empty($pris) || empty($butikk)) continue;
+
+            $info['priser'][] = [
+                'butikk' => $butikk,
+                'pris' => $pris,
+                'url' => $produkt['url'] ?? null,
+            ];
         }
 
-        $info['priser'][] = [
-            'butikk' => $butikk,
-            'pris' => $pris,
-            'url' => $produkt['url'] ?? null,
-        ];
-        }
-        
-        // Sorter etter pris
         usort($info['priser'], fn($a, $b) => $a['pris'] <=> $b['pris']);
 
         return $info;
-
-        
     }
 }
-
-
-?>
