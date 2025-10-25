@@ -1,7 +1,5 @@
 <?php
-require_once __DIR__ . '/../config/config.php';
 require 'vendor/autoload.php';
-
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 
@@ -25,10 +23,7 @@ class KassalappAPI {
 
     public function request(string $endpoint, array $params = []) {
         try {
-            $response = $this->client->get($endpoint, [
-                'query' => $params
-            ]);
-
+            $response = $this->client->get($endpoint, ['query' => $params]);
             return json_decode($response->getBody(), true);
         } catch (RequestException $e) {
             $this->handleError($e);
@@ -41,14 +36,10 @@ class KassalappAPI {
             $body = json_decode($e->getResponse()->getBody(), true);
 
             switch ($statusCode) {
-                case 401:
-                    throw new Exception('Ugyldig API-nøkkel');
-                case 429:
-                    throw new Exception('For mange forespørsler - vent litt');
-                case 404:
-                    throw new Exception('Ressursen ble ikke funnet');
-                default:
-                    throw new Exception($body['message'] ?? 'En feil oppstod');
+                case 401: throw new Exception('Ugyldig API-nøkkel');
+                case 429: throw new Exception('For mange forespørsler - vent litt');
+                case 404: throw new Exception('Ressursen ble ikke funnet');
+                default: throw new Exception($body['message'] ?? 'En feil oppstod');
             }
         }
         throw new Exception('Kunne ikke koble til API-et');
