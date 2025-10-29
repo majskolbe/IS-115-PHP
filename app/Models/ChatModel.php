@@ -1,0 +1,1 @@
+Henter svar fra DB
