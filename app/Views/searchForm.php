@@ -9,15 +9,7 @@
         button { padding: 8px 12px; margin-left: 8px; }
         .result { margin-top: 20px; padding: 10px; background: #f7f7f7; border-radius: 8px; }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/botman-web-widget@0/build/js/widget.js"></script>
-<script>
-  var botmanWidget = {
-    aboutText: 'EAN-prisbot',
-    introMessage: "Hei! Skriv 'EAN 1234567890123' for å finne billigste pris 📦",
-    chatServer: '/botman.php' // ← dette må matche filen du nettopp laget
-  };
-</script>
-
+    <!-- BotMan widget removed per user request -->
 
 </head>
 <body>
