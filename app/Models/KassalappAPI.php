@@ -1,6 +1,6 @@
 <?php
 //laster inn nødvendige avhengigheter via Composer
-require 'vendor/autoload.php';
+require __DIR__ . '/../../vendor/autoload.php';
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 
