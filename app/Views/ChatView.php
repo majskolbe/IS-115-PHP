@@ -64,7 +64,7 @@
 <body>
 
 <div class="chat-container">
-  <h2>🗨️ Finn laveste pris på en matvare!</h2>
+  <h2>Finn laveste pris på en matvare!</h2>
   <div class="chat-box" id="chatBox"></div>
   <input type="text" id="userInput" placeholder="Skriv en melding..." />
   <button onclick="sendMessage()">Send</button>
