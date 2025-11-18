@@ -8,11 +8,8 @@ class ChatModel {
     public function __construct() {
         try {
             $this->db = (new Database())->tilkobling;
-            // Check if table exists
-            $result = $this->db->query("SHOW TABLES LIKE 'chatbot_hints'");
-            if (!$result || $result->num_rows == 0) {
-                $this->tableExists = false;
-            }
+            $stmt = $this->db->query("SHOW TABLES LIKE 'chatbot_hints'");
+            $this->tableExists = $stmt->rowCount() > 0;
         } catch (Exception $e) {
             $this->tableExists = false;
         }
@@ -20,28 +17,22 @@ class ChatModel {
 
     public function getHintReply($userInput) {
         if (!$this->tableExists) {
-            return null; // Table doesn't exist, return null to allow EAN-based search
+            return null;
         }
-        
+
         try {
-            $stmt = $this->db->prepare("SELECT reply FROM chatbot_hints WHERE question LIKE ?");
-            if (!$stmt) {
-                throw new Exception("Prepare failed: " . $this->db->error);
-            }
-            
+            $stmt = $this->db->prepare("SELECT reply FROM chatbot_hints WHERE question LIKE :input");
             $likeInput = '%' . $userInput . '%';
-            $stmt->bind_param("s", $likeInput);
-            
-            if (!$stmt->execute()) {
-                throw new Exception("Execute failed: " . $stmt->error);
-            }
-            
-            $result = $stmt->get_result();
-            return ($result->num_rows > 0) ? $result->fetch_assoc()['reply'] : null;
+            $stmt->bindParam(':input', $likeInput, PDO::PARAM_STR);
+            $stmt->execute();
+
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? $result['reply'] : null;
         } catch (Exception $e) {
-            return null; // Silently return null if query fails
+            return null;
         }
     }
 }
+
 ?>
 
