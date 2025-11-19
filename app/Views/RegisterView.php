@@ -82,11 +82,15 @@
 </style>
 
 <div class="auth-container">
-    <h2>Logg inn</h2>
+    <h2>Registrer bruker</h2>
     <form method="post" action="index.php">
+        <input type="hidden" name="action" value="register">
+        <input type="text" name="fname" placeholder="Fornavn" required>
+        <input type="text" name="lname" placeholder="Etternavn" required>
+        <input type="email" name="email" placeholder="E-post" required>
         <input type="text" name="username" placeholder="Brukernavn" required>
         <input type="password" name="password" placeholder="Passord" required>
-        <button type="submit">Logg inn</button>
+        <button type="submit">Registrer</button>
     </form>
 
     <?php if (!empty($_GET['error'])): ?>
@@ -96,5 +100,5 @@
         <p class="message success"><?= htmlspecialchars($_GET['message']) ?></p>
     <?php endif; ?>
 
-    <p>Har du ikke bruker? <a href="index.php?page=register">Registrer her</a></p>
+    <p>Allerede bruker? <a href="index.php?page=login">Logg inn her</a></p>
 </div>
