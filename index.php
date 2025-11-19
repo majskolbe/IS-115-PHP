@@ -44,6 +44,7 @@ switch ($page) {
 
     case 'chat':
         $authController->checkAccess(); // alle innloggede brukere
+        $eanCodes = $userModel->getAllEanCodes();
         require_once __DIR__ . '/app/Views/ChatView.php';
         break;
 

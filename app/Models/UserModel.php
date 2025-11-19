@@ -67,5 +67,16 @@ class UserModel {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getAllEanCodes(): array {
+        try {
+            $stmt = $this->db->prepare("SELECT id, product_name, ean_code FROM ean_products ORDER BY product_name ASC");
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            // Hvis tabellen ikke finnes, returner tom liste
+            return [];
+        }
+    }
 }
 ?>
