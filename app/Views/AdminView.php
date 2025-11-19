@@ -1,7 +1,3 @@
-<?php
-// Access already checked in index.php before including this view
-?>
-
 <!DOCTYPE html>
 <html lang="no">
 <head>

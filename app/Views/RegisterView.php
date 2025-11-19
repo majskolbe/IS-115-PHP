@@ -18,13 +18,16 @@
         <button type="submit">Registrer</button>
     </form>
 
-    <?php if (!empty($_GET['error'])): ?>
-        <p class="message error"><?= htmlspecialchars($_GET['error']) ?></p>
-    <?php endif; ?>
-    <?php if (!empty($_GET['message'])): ?>
-        <p class="message success"><?= htmlspecialchars($_GET['message']) ?></p>
-    <?php endif; ?>
-
+    <?php 
+    if (!empty($_GET['error'])){
+        echo '<p class="message error">' . htmlspecialchars($_GET['error']) . '</p>';
+    }
+    
+    if (!empty($_GET['message'])){
+        echo '<p class="message success">' . htmlspecialchars($_GET['message']) . '</p>';
+    }
+    ?>
+    
     <p>Allerede bruker? <a href="index.php?page=login">Logg inn her</a></p>
 </div>
 </body>

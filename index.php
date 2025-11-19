@@ -45,13 +45,12 @@ switch ($page) {
     case 'chat':
         $authController->checkAccess(); // alle innloggede brukere
         $eanCodes = $userModel->getAllEanCodes();
-        // Hent eksempel-spørsmål til chatboten
         $exampleQuestions = $userModel->getAllExampleQuestions();
         require_once __DIR__ . '/app/Views/ChatView.php';
         break;
 
     case 'admin':
-        $authController->checkAccess('admin'); // kun admin
+        $authController->checkAccess('admin');
         $users = $userModel->getAllUsers();
         require_once __DIR__ . '/app/Views/AdminView.php';
         break;
