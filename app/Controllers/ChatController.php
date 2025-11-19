@@ -9,21 +9,43 @@ class ChatController {
 
     public function __construct() {
         $this->model = new ChatModel();
-        $api = new KassalappAPI(KASSALAPP_API_KEY); 
+        // Opprett API-klient og scanner
+        $api = new KassalappAPI(KASSALAPP_API_KEY);
         $this->scanner = new StrekkodeScanner($api);
     }
 
     public function handleUserMessage($message) {
-        $intent = $this->detectIntent($message);   // <-- legg til her
+        // Normaliser input
+        $message = trim(preg_replace('/\s+/', ' ', $message));
+        $intent = $this->detectIntent($message);
         $ean = $this->extractEAN($message);
         $reply = $this->model->getHintReply($message);
+
+        // Sjekk spesifikk butikk-spørring: "hva koster [EAN] hos [butikk]"
+        if (preg_match('/^hva koster\s+(\d{13})\s+(hos|i|på)\s+([A-Za-zÆØÅæøå\s]+)\??$/iu', $message, $matches)) {
+            $ean = $matches[1];
+            $store = mb_convert_case(trim($matches[3]), MB_CASE_TITLE, 'UTF-8');
+
+            $resultat = $this->scanner->skannProdukt($ean);
+            if ($resultat && !empty($resultat['priser'])) {
+                foreach ($resultat['priser'] as $pris) {
+                    if (strcasecmp($pris['butikk'], $store) === 0) {
+                        return "Prisen på EAN $ean hos $store er {$pris['pris']} kr.";
+                    }
+                }
+                return "Fant ingen pris for EAN $ean hos $store.";
+            }
+            return "Fant ingen prisinformasjon for EAN $ean.";
+        }
+
+        // Ellers: bruk intensjon
         switch ($intent) {
             case 'greeting':
-                return "Hei! Send meg en EAN-kode så finner jeg den billigste prisen for deg.";
+                return "Hei! Send meg en EAN-kode så finner jeg den billigste prisen.";
             case 'thanks':
                 return "Bare hyggelig! Si ifra hvis du trenger mer hjelp.";
             case 'capabilities':
-                return "Jeg kan finne priser på matvarer basert på EAN-koder og vise hvor du sparer mest. Prøv å sende en EAN-kode!";
+                return "Jeg kan finne priser på matvarer basert på EAN-koder og vise hvor du sparer mest.";
             case 'ean_lookup':
                 if ($ean) {
                     $resultat = $this->scanner->skannProdukt($ean);
@@ -35,7 +57,6 @@ class ChatController {
                         $merke = htmlspecialchars($resultat['merke'] ?? '');
                         $bilde = !empty($resultat['bilde']) ? htmlspecialchars($resultat['bilde']) : null;
 
-                        // Start et mer naturlig, brukervennlig svar
                         $replyHtml = '<div class="result"><h3>' . $navn;
                         if ($merke) $replyHtml .= ' (' . $merke . ')';
                         $replyHtml .= '</h3>';
@@ -44,29 +65,16 @@ class ChatController {
                             $replyHtml .= '<img src="' . $bilde . '" alt="Produktbilde" class="product-image"><br>';
                         }
 
-                        // Billigste pris
-                        $prisVerdi = htmlspecialchars($billigst['pris']);
-                        $butikkNavn = htmlspecialchars($billigst['butikk']);
-                        $replyHtml .= '<p>Den laveste prisen jeg finner akkurat nå er <strong>' . $prisVerdi . ' kr</strong> hos <strong>' . $butikkNavn . '</strong>.</p>';
-
-                        // Beregn forskjell til neste billigste om mulig
-                        $allPrices = [];
-                        foreach ($resultat['priser'] as $p) {
-                            $val = floatval($p['pris']);
-                            $allPrices[] = $val;
-                        }
-                        sort($allPrices);
-                        if (count($allPrices) > 1) {
-                            $next = $allPrices[1];
-                            $diff = $next - floatval($prisVerdi);
-                            if ($diff > 0) {
-                                $replyHtml .= '<p>Det betyr omtrent <strong>' . number_format($diff, 0) . ' kr</strong> i besparelse sammenlignet med neste alternativ.</p>';
-                            }
+                        if ($billigst) {
+                            $prisVerdi = htmlspecialchars($billigst['pris']);
+                            $butikkNavn = htmlspecialchars($billigst['butikk']);
+                            $replyHtml .= '<p>Den laveste prisen jeg finner er <strong>' . $prisVerdi . ' kr</strong> hos <strong>' . $butikkNavn . '</strong>.</p>';
+                        } else {
+                            $replyHtml .= '<p>Ingen priser funnet.</p>';
                         }
 
-                        // Andre butikker
                         if (!empty($andrePriser)) {
-                            $replyHtml .= '<h4>Andre butikker og priser</h4><ul>';
+                            $replyHtml .= '<h4>Andre butikker:</h4><ul>';
                             foreach ($andrePriser as $pris) {
                                 $butikk = htmlspecialchars($pris['butikk']);
                                 $replyHtml .= '<li>' . $butikk . ': <b>' . htmlspecialchars($pris['pris']) . ' kr</b></li>';
@@ -74,12 +82,10 @@ class ChatController {
                             $replyHtml .= '</ul>';
                         }
 
-                        $replyHtml .= '<p>Ønsker du at jeg skal søke etter et annet produkt?</p>';
                         $replyHtml .= '</div>';
-
                         return $replyHtml;
                     }
-                    return "Beklager — jeg fant ingen prisinformasjon for EAN $ean.";
+                    return "Fant ingen prisinformasjon for EAN $ean.";
                 }
                 return "Jeg fant ingen gyldig EAN-kode i meldingen. En EAN er vanligvis 13 siffer lang.";
             default:
