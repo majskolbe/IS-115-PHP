@@ -21,6 +21,18 @@ class ChatController {
         $ean = $this->extractEAN($message);
         $reply = $this->model->getHintReply($message);
 
+        // Sjekk spørsmål om produktbeskrivelse: "hva er [EAN]" eller "fortell om [EAN]"
+        if (preg_match('/(hva er|fortell om||fortelle om|beskrivelse på|info om|produktinformasjon om)\s+(\d{13})\??$/iu', $message, $matches)) {
+            $ean = $matches[2];
+            $resultat = $this->scanner->skannProdukt($ean);
+            if ($resultat && !empty($resultat['beskrivelse'])) {
+                $navn = htmlspecialchars($resultat['navn'] ?? 'Produktet');
+                $beskrivelse = htmlspecialchars($resultat['beskrivelse']);
+                return '<div class="product-info"><p><strong>' . $navn . '</strong></p><p>' . $beskrivelse . '</p></div>';
+            }
+            return "Beklager, jeg fant ingen beskrivelse for EAN $ean.";
+        }
+
         // Sjekk spesifikk butikk-spørring: "hva koster [EAN] hos [butikk]"
         if (preg_match('/^hva koster\s+(\d{13})\s+(hos|i|på)\s+([A-Za-zÆØÅæøå\s]+)\??$/iu', $message, $matches)) {
             $ean = $matches[1];
