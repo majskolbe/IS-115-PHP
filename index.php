@@ -2,22 +2,36 @@
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/app/Controllers/AuthController.php';
-require_once __DIR__ . '/app/Models/UserModel.php';
 require_once __DIR__ . '/app/Controllers/ChatController.php';
+require_once __DIR__ . '/app/Models/UserModel.php';
+require_once __DIR__ . '/app/Models/InfoPrintModel.php';
 
 session_start();
 
 // Opprett database og modeller
 $pdo = (new Database())->tilkobling;
 $userModel = new UserModel($pdo);
+$infoModel = new InfoPrintModel($pdo);
 $authController = new AuthController($userModel);
 $chatController = new ChatController();
 
 // Håndter POST requests for login og register
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action']) && $_POST['action'] === 'register') {
-        if (isset($_POST['fname']) && isset($_POST['lname']) && isset($_POST['email']) && isset($_POST['username']) && isset($_POST['password'])) {
-            $authController->handleRegister($_POST['fname'], $_POST['lname'], $_POST['email'], $_POST['username'], $_POST['password']);
+        if (
+            isset($_POST['fname']) &&
+            isset($_POST['lname']) &&
+            isset($_POST['email']) &&
+            isset($_POST['username']) &&
+            isset($_POST['password'])
+        ) {
+            $authController->handleRegister(
+                $_POST['fname'],
+                $_POST['lname'],
+                $_POST['email'],
+                $_POST['username'],
+                $_POST['password']
+            );
             exit;
         }
     } elseif (isset($_POST['username']) && isset($_POST['password'])) {
@@ -43,9 +57,10 @@ switch ($page) {
         break;
 
     case 'chat':
-        $authController->checkAccess(); // alle innloggede brukere
-        $eanCodes = $userModel->getAllEanCodes();
-        $exampleQuestions = $userModel->getAllExampleQuestions();
+        $authController->checkAccess(); // alle innloggede bruker
+        // Hent data fra InfoPrintModel
+        $eanCodes = $infoModel->getAllEanCodes();
+        $exampleQuestions = $infoModel->getAllExampleQuestions();
         require_once __DIR__ . '/app/Views/ChatView.php';
         break;
 
@@ -68,6 +83,4 @@ switch ($page) {
             exit;
         }
 }
-
-    
 ?>
