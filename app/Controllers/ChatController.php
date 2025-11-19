@@ -22,7 +22,7 @@ class ChatController {
         $reply = $this->model->getHintReply($message);
 
         // Sjekk spørsmål om produktbeskrivelse: "hva er [EAN]" eller "fortell om [EAN]"
-        if (preg_match('/(hva er|fortell om||fortelle om|beskrivelse på|info om|produktinformasjon om)\s+(\d{13})\??$/iu', $message, $matches)) {
+        if (preg_match('/(hva er|fortell om|fortelle om|beskrivelse på|info om|produktinformasjon om)\s+(\d{13})\??$/iu', $message, $matches)) {
             $ean = $matches[2];
             $resultat = $this->scanner->skannProdukt($ean);
             if ($resultat && !empty($resultat['beskrivelse'])) {
