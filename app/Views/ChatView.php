@@ -15,22 +15,51 @@
 $role = $_SESSION['user']['role'];
 $username = htmlspecialchars($_SESSION['user']['username']);
 ?>
-<div class="chat-container">
-  <h2>Finn laveste pris på en matvare!</h2>
-  <p>Innlogget som: <strong><?= $username ?></strong> (<?= $role ?>)</p>
-  
-  <div class="button-group">
-    <?php if ($role === 'admin'): ?>
-      <a href="index.php?page=admin" class="nav-button">Gå til admin</a>
-    <?php endif; ?>
-    <form action="index.php?page=logout" method="post" style="margin: 0;">
-      <button type="submit">Logg ut</button>
-    </form>
+
+<div class="chat-wrapper">
+  <div class="chat-container">
+    <h2>Finn laveste pris på en matvare!</h2>
+    <p>Innlogget som: <strong><?= $username ?></strong> (<?= $role ?>)</p>
+    
+    <div class="button-group">
+      <?php if ($role === 'admin'): ?>
+        <a href="index.php?page=admin" class="nav-button">Gå til admin</a>
+      <?php endif; ?>
+      <form action="index.php?page=logout" method="post">
+        <button type="submit">Logg ut</button>
+      </form>
+    </div>
+
+    <div class="chat-box" id="chatBox"></div>
+    <input type="text" id="userInput" placeholder="Skriv en melding..." />
+    <button onclick="sendMessage()">Send</button>
   </div>
 
-  <div class="chat-box" id="chatBox"></div>
-  <input type="text" id="userInput" placeholder="Skriv en melding..." />
-  <button onclick="sendMessage()">Send</button>
+  <div class="ean-sidebar">
+    <h3>Foreslåtte varer</h3>
+    <table class="ean-table">
+      <thead>
+        <tr>
+          <th>Produktnavn</th>
+          <th>EAN-kode</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php if (!empty($eanCodes)): ?>
+          <?php foreach ($eanCodes as $ean): ?>
+            <tr>
+              <td><?= htmlspecialchars($ean['product_name']) ?></td>
+              <td class="ean-code"><?= htmlspecialchars($ean['ean_code']) ?></td>
+            </tr>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <tr>
+            <td colspan="2" class="no-data">Ingen varer registrert</td>
+          </tr>
+        <?php endif; ?>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <script>
