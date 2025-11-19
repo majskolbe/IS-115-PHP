@@ -21,10 +21,38 @@ class ChatController {
         $reply = $this->model->getHintReply($message);
 
         if ($ean) {
-            $produkt = $this->scanner->skannProdukt($ean);
-            if ($produkt && !empty($produkt['priser'])) {
-                $billigst = $this->scanner->finnBilligstePris($produkt['priser']);
-                $reply .= "<br>Den billigste prisen for {$produkt['navn']} er {$billigst['pris']} kr hos {$billigst['butikk']}.";
+            $resultat = $this->scanner->skannProdukt($ean);
+            if ($resultat && !empty($resultat['priser'])) {
+                $billigst = $this->scanner->finnBilligstePris($resultat['priser']);
+                $andrePriser = $this->scanner->hentAndrePriser($resultat['priser']);
+                
+                $navn = htmlspecialchars($resultat['navn'] ?? 'Ukjent');
+                $merke = htmlspecialchars($resultat['merke'] ?? '');
+                $bilde = !empty($resultat['bilde']) ? htmlspecialchars($resultat['bilde']) : null;
+                
+                // Bygger HTML-svar likt searchResult.php
+                $reply = '<div class="result"><h3>' . $navn . ' (' . $merke . ')</h3>';
+                
+                if ($bilde) {
+                    $reply .= '<img src="' . $bilde . '" alt="Produktbilde" style="max-width: 150px;"><br>';
+                }
+                
+                if ($billigst) {
+                    $reply .= '<p>Billigste pris: <b>' . htmlspecialchars($billigst['pris']) . ' kr</b> hos <b>' . htmlspecialchars($billigst['butikk']) . '</b></p>';
+                } else {
+                    $reply .= '<p>Ingen priser funnet.</p>';
+                }
+                
+                $reply .= '</div>';
+                
+                if (!empty($andrePriser)) {
+                    $reply .= '<h4>Andre butikker:</h4><ul>';
+                    foreach ($andrePriser as $pris) {
+                        $butikk = htmlspecialchars($pris['butikk']);
+                        $reply .= '<li>' . $butikk . ': <b>' . htmlspecialchars($pris['pris']) . ' kr</b></li>';
+                    }
+                    $reply .= '</ul>';
+                }
             } else {
                 $reply .= "<br>Fant ingen prisinformasjon for EAN $ean.";
             }

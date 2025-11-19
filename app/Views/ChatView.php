@@ -7,82 +7,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-
-     <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #fff;
-      margin: 0;
-      padding: 0;
-    }
-    .chat-container {
-      max-width: 600px;
-      margin: 50px auto;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(255,0,0,0.2);
-      padding: 20px;
-      border: 2px solid #cc0000;
-    }
-    .chat-box {
-      height: 300px;
-      overflow-y: auto;
-      border: 1px solid #cc0000;
-      padding: 10px;
-      margin-bottom: 15px;
-      background: #ffecec;
-    }
-    .message {
-      margin: 10px 0;
-    }
-    .user {
-      text-align: right;
-      color: #cc0000;
-    }
-    .bot {
-      text-align: left;
-      color: #990000;
-    }
-    input[type="text"] {
-      width: 80%;
-      padding: 10px;
-      border: 1px solid #cc0000;
-      border-radius: 4px;
-      background: #fff;
-      color: #000;
-    }
-    button {
-      padding: 10px 15px;
-      border: none;
-      background: #cc0000;
-      color: white;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #990000;
-    }
-    .button-group {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    .button-group a {
-      padding: 10px 15px;
-      background: #cc0000;
-      color: white;
-      text-decoration: none;
-      border-radius: 4px;
-      cursor: pointer;
-      display: inline-block;
-    }
-    .button-group a:hover {
-      background: #990000;
-    }
-  </style>
+    <title>Chat - Finn laveste pris</title>
+    <link rel="stylesheet" href="public/css/style.css">
 </head>
-<body>
+<body class="chat-body">
 <?php
 $role = $_SESSION['user']['role'];
 $username = htmlspecialchars($_SESSION['user']['username']);
