@@ -1,7 +1,3 @@
-<?php
-// Access already checked in index.php before including this view
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,17 +21,14 @@ $username = htmlspecialchars($_SESSION['user']['username']);
         <tr><th>Spørsmål</th></tr>
       </thead>
       <tbody>
-        <?php if (!empty($exampleQuestions)): ?>
-          <?php foreach ($exampleQuestions as $q): ?>
-            <tr>
-              <td><?= htmlspecialchars($q['question']) ?></td>
-            </tr>
-          <?php endforeach; ?>
-        <?php else: ?>
-          <tr>
-            <td class="no-data">Ingen spørsmål registrert</td>
-          </tr>
-        <?php endif; ?>
+        <?php
+          if (!empty($exampleQuestions)){
+            foreach ($exampleQuestions as $q)
+             echo '<tr><td>' . htmlspecialchars($q['question']) . '</td></tr>';
+          }else{
+            echo '<tr><td class="no-data">Ingen spørsmål registrert</td></tr>';
+          }
+        ?>
       </tbody>
     </table>
   </div>
@@ -70,18 +63,21 @@ $username = htmlspecialchars($_SESSION['user']['username']);
         </tr>
       </thead>
       <tbody>
-        <?php if (!empty($eanCodes)): ?>
-          <?php foreach ($eanCodes as $ean): ?>
-            <tr>
-              <td><?= htmlspecialchars($ean['product_name']) ?></td>
-              <td class="ean-code"><?= htmlspecialchars($ean['ean_code']) ?></td>
-            </tr>
-          <?php endforeach; ?>
-        <?php else: ?>
-          <tr>
-            <td colspan="2" class="no-data">Ingen varer registrert</td>
-          </tr>
-        <?php endif; ?>
+
+      <?php
+        if (!empty($eanCodes)){
+          foreach ($eanCodes as $ean){
+            echo '<tr>
+              <td>' . htmlspecialchars($ean['product_name']) .'</td>
+              <td class="ean-code">' . htmlspecialchars($ean['ean_code']) . '</td>
+            </tr>';
+        }
+          }else{
+            echo '<tr><td colspan="2" class="no-data">Ingen varer registrert</td></tr>';
+          }    
+
+      ?>
+      
       </tbody>
     </table>
   </div>

@@ -1,5 +1,8 @@
 <?php
-
+/*
+ansvar for å håndtere brukerhandlinger:
+log inn, log ut, registrer, utestening etc
+*/
 class UserModel {
     private $db;
 
@@ -14,6 +17,7 @@ class UserModel {
         return $user ?: null;
     }
 
+    //oprretter ny bruker
     public function createUser(string $fname, string $lname, string $email, string $username, string $passwordHash, string $role = 'user'): bool {
         $stmt = $this->db->prepare("INSERT INTO users (fname, lname, email, username, password_hash, role) VALUES (:fname, :lname, :email, :username, :password_hash, :role)");
         return $stmt->execute([
@@ -26,6 +30,7 @@ class UserModel {
         ]);
     }
 
+    
     public function verifyPassword(string $username, string $password): ?array {
         $user = $this->findByUsername($username);
         if ($user && password_verify($password, $user['password_hash'])) {

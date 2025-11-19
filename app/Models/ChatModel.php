@@ -15,7 +15,7 @@ class ChatModel {
         }
     }
 
-    // 🔍 Henter hint-svar fra chatbot_hints-tabellen
+    //Henter hint-svar fra chatbot_hints-tabellen
     public function getHintReply($userInput) {
         if (!$this->tableExists) {
             return null;
@@ -34,7 +34,7 @@ class ChatModel {
         }
     }
 
-    //  Ny funksjon: Hent pris for EAN hos spesifikk butikk
+    //Hent pris for EAN hos spesifikk butikk
     public function getPriceByEANAndStore($ean, $store) {
         try {
             $query = "SELECT price FROM products WHERE ean = :ean AND store = :store LIMIT 1";

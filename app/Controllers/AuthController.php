@@ -6,40 +6,28 @@ class AuthController {
         $this->userModel = $userModel;
     }
 
+    //funskjon for å validere brukerinput
     private function validerInput(array $data): array {
         $feil = [];
-        
-        if (empty($data['fname'])) {
-            $feil[] = "Fornavn må oppgis";
-        }
-        
-        if (empty($data['lname'])) {
-            $feil[] = "Etternavn må oppgis";
-        }
-        
-        if (empty($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            $feil[] = "Ugyldig e-postadresse";
-        }
-        
-        if (empty($data['username'])) {
-            $feil[] = "Brukernavn må oppgis";
-        }
+
+        if (!$data['fname']) $feil[] = "Fornavn må oppgis";
+        if (!$data['lname']) $feil[] = "Etternavn må oppgis";
+        if (!$data['epost'] || !filter_var($data['epost'], FILTER_VALIDATE_EMAIL)) $feil[] = "Ugyldig e-post";
+        if (!$data['username']) $feil[] = "Brukernavn må oppgis";
         
         if (empty($data['password']) || strlen($data['password']) < 8) {
             $feil[] = "Passord må være minst 8 tegn langt";
         }
-        
         if (!empty($data['password']) && !preg_match('/[A-Z]/', $data['password'])) {
             $feil[] = "Passord må inneholde minst en stor bokstav";
         }
-        
         if (!empty($data['password']) && !preg_match('/[0-9]/', $data['password'])) {
             $feil[] = "Passord må inneholde minst ett siffer";
         }
         
         return $feil;
-    }
-
+    } 
+   
     public function loginPage(): void {
         include __DIR__ . '/../Views/LoginView.php';
     }

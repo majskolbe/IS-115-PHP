@@ -1,5 +1,5 @@
 <?php
-// Turn on error logging instead of display to avoid breaking JSON
+
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
 

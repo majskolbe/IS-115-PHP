@@ -57,17 +57,15 @@ switch ($page) {
         break;
 
     case 'chat':
-        $authController->checkAccess(); // alle innloggede brukere
-
+        $authController->checkAccess(); // alle innloggede bruker
         // Hent data fra InfoPrintModel
         $eanCodes = $infoModel->getAllEanCodes();
         $exampleQuestions = $infoModel->getAllExampleQuestions();
-
         require_once __DIR__ . '/app/Views/ChatView.php';
         break;
 
     case 'admin':
-        $authController->checkAccess('admin'); // kun admin
+        $authController->checkAccess('admin');
         $users = $userModel->getAllUsers();
         require_once __DIR__ . '/app/Views/AdminView.php';
         break;
