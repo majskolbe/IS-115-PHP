@@ -35,33 +35,40 @@ $username = htmlspecialchars($_SESSION['user']['username']);
 
 <script>
   async function sendMessage() {
-  const input = document.getElementById("userInput");
-  const chatBox = document.getElementById("chatBox");
-  const message = input.value.trim();
+    const input = document.getElementById("userInput");
+    const chatBox = document.getElementById("chatBox");
+    const message = input.value.trim();
 
-  if (message === "") return;
+    if (message === "") return;
 
-  chatBox.innerHTML += `<div class="message user"><strong>Du:</strong> ${message}</div>`;
-  input.value = "";
+    chatBox.innerHTML += `<div class="message user"><strong>Du:</strong> ${message}</div>`;
+    input.value = "";
 
-  try {
-    const response = await fetch("./app/Controllers/Chat_backend.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message })
-    });
+    try {
+      const response = await fetch("./app/Controllers/Chat_backend.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message })
+      });
 
-    const data = await response.json();
-    const reply = data.reply || data.error || "Ingen svar mottatt.";
+      const data = await response.json();
+      const reply = data.reply || data.error || "Ingen svar mottatt.";
 
-    chatBox.innerHTML += `<div class="message bot"><strong>Bot:</strong> ${reply}</div>`;
-    chatBox.scrollTop = chatBox.scrollHeight;
-  } catch (error) {
-    console.error("Fetch error:", error);
-    chatBox.innerHTML += `<div class="message bot"><strong>Bot:</strong> Feil ved henting av svar: ${error.message}</div>`;
+      chatBox.innerHTML += `<div class="message bot"><strong>Bot:</strong> ${reply}</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    } catch (error) {
+      console.error("Fetch error:", error);
+      chatBox.innerHTML += `<div class="message bot"><strong>Bot:</strong> Feil ved henting av svar: ${error.message}</div>`;
+    }
   }
-}
 
+  // Legg til Enter-tast som trigger sendMessage()
+  document.getElementById("userInput").addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+      event.preventDefault(); // Hindrer linjeskift
+      sendMessage();
+    }
+  });
 </script>
     
 </body>
