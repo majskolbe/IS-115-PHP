@@ -1,86 +1,11 @@
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f5f5f5;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-    }
-    .auth-container {
-        background: white;
-        padding: 40px;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        width: 100%;
-        max-width: 400px;
-    }
-    h2 {
-        text-align: center;
-        color: #333;
-        margin-top: 0;
-    }
-    form {
-        display: flex;
-        flex-direction: column;
-    }
-    input {
-        padding: 12px;
-        margin-bottom: 15px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 14px;
-    }
-    input:focus {
-        outline: none;
-        border-color: #cc0000;
-        box-shadow: 0 0 5px rgba(204, 0, 0, 0.3);
-    }
-    button {
-        padding: 12px;
-        background: #cc0000;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        font-size: 16px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-    button:hover {
-        background: #990000;
-    }
-    p {
-        text-align: center;
-        margin-top: 20px;
-        color: #666;
-    }
-    p a {
-        color: #cc0000;
-        text-decoration: none;
-    }
-    p a:hover {
-        text-decoration: underline;
-    }
-    .message {
-        text-align: center;
-        padding: 10px;
-        margin-bottom: 15px;
-        border-radius: 4px;
-    }
-    .error {
-        color: #c33;
-        background: #fee;
-        border: 1px solid #fcc;
-    }
-    .success {
-        color: #3c3;
-        background: #efe;
-        border: 1px solid #cfc;
-    }
-</style>
-
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrer</title>
+    <link rel="stylesheet" href="public/css/style.css">
+</head>
+<body class="auth-body">
 <div class="auth-container">
     <h2>Registrer bruker</h2>
     <form method="post" action="index.php">
@@ -102,3 +27,5 @@
 
     <p>Allerede bruker? <a href="index.php?page=login">Logg inn her</a></p>
 </div>
+</body>
+</html>
