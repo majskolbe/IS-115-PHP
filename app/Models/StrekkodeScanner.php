@@ -42,6 +42,7 @@ class StrekkodeScanner {
             'navn' => $data['products'][0]['name'] ?? 'Ukjent produkt',
             'merke' => $data['products'][0]['brand'] ?? 'Ukjent merke',
             'bilde' => $data['products'][0]['image'] ?? null,
+            'beskrivelse' =>$data['products'][0]['description'] ?? null
         ];
     }
 
