@@ -5,10 +5,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat - Finn laveste pris</title>
-    <link rel="stylesheet" href="public/css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat - Finn laveste pris</title>
+  <link rel="stylesheet" href="public/css/style.css">
 </head>
 <body class="chat-body">
 <?php
@@ -17,6 +17,30 @@ $username = htmlspecialchars($_SESSION['user']['username']);
 ?>
 
 <div class="chat-wrapper">
+  <!-- Venstre sidebar: Eksempelspørsmål -->
+  <div class="question-sidebar">
+    <h3>Eksempler på spørsmål</h3>
+    <table class="question-table">
+      <thead>
+        <tr><th>Spørsmål</th></tr>
+      </thead>
+      <tbody>
+        <?php if (!empty($exampleQuestions)): ?>
+          <?php foreach ($exampleQuestions as $q): ?>
+            <tr>
+              <td><?= htmlspecialchars($q['question']) ?></td>
+            </tr>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <tr>
+            <td class="no-data">Ingen spørsmål registrert</td>
+          </tr>
+        <?php endif; ?>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Midten: Chat -->
   <div class="chat-container">
     <h2>Finn laveste pris på en matvare!</h2>
     <p>Innlogget som: <strong><?= $username ?></strong> (<?= $role ?>)</p>
@@ -35,6 +59,7 @@ $username = htmlspecialchars($_SESSION['user']['username']);
     <button onclick="sendMessage()">Send</button>
   </div>
 
+  <!-- Høyre sidebar: Foreslåtte varer -->
   <div class="ean-sidebar">
     <h3>Foreslåtte varer</h3>
     <table class="ean-table">
@@ -91,14 +116,13 @@ $username = htmlspecialchars($_SESSION['user']['username']);
     }
   }
 
-  // Legg til Enter-tast som trigger sendMessage()
   document.getElementById("userInput").addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
-      event.preventDefault(); // Hindrer linjeskift
+      event.preventDefault();
       sendMessage();
     }
   });
 </script>
-    
+
 </body>
 </html>

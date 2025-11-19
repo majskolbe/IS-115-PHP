@@ -78,5 +78,12 @@ class UserModel {
             return [];
         }
     }
+
+    public function getAllExampleQuestions(): array {
+    $stmt = $this->db->prepare("SELECT question FROM questions ORDER BY id ASC");
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
 }
 ?>
