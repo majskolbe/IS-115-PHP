@@ -1,0 +1,337 @@
+/* ==================== GLOBAL STYLES ==================== */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4 {
+    margin-top: 0;
+}
+
+a {
+    text-decoration: none;
+    color: #cc0000;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* ==================== AUTH PAGES (LOGIN & REGISTER) ==================== */
+.auth-body {
+    background: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.auth-container {
+    background: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-container h2 {
+    text-align: center;
+    color: #333;
+}
+
+.auth-container form {
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-container input {
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.auth-container input:focus {
+    outline: none;
+    border-color: #cc0000;
+    box-shadow: 0 0 5px rgba(204, 0, 0, 0.3);
+}
+
+.auth-container button {
+    padding: 12px;
+    background: #cc0000;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.auth-container button:hover {
+    background: #990000;
+}
+
+.auth-container p {
+    text-align: center;
+    margin-top: 20px;
+    color: #666;
+}
+
+.auth-container p a {
+    color: #cc0000;
+}
+
+/* ==================== MESSAGE ALERTS ==================== */
+.message {
+    text-align: center;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.error {
+    color: #c33;
+    background: #fee;
+    border: 1px solid #fcc;
+}
+
+.success {
+    color: #3c3;
+    background: #efe;
+    border: 1px solid #cfc;
+}
+
+/* ==================== CHAT PAGE ==================== */
+.chat-body {
+    font-family: Arial, sans-serif;
+    background: #fff;
+    margin: 0;
+    padding: 0;
+}
+
+.chat-container {
+    max-width: 600px;
+    margin: 50px auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.2);
+    padding: 20px;
+    border: 2px solid #cc0000;
+}
+
+.chat-container h2 {
+    margin-top: 0;
+}
+
+.chat-box {
+    height: 300px;
+    overflow-y: auto;
+    border: 1px solid #cc0000;
+    padding: 10px;
+    margin-bottom: 15px;
+    background: #ffecec;
+}
+
+.chat-box .message {
+    margin: 10px 0;
+    text-align: left;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    border: none;
+}
+
+.message.user {
+    text-align: right;
+    color: #cc0000;
+}
+
+.message.bot {
+    text-align: left;
+    color: #990000;
+}
+
+.chat-container input[type="text"] {
+    width: 80%;
+    padding: 10px;
+    border: 1px solid #cc0000;
+    border-radius: 4px;
+    background: #fff;
+    color: #000;
+    font-size: 14px;
+}
+
+.chat-container button {
+    padding: 10px 15px;
+    border: none;
+    background: #cc0000;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.chat-container button:hover {
+    background: #990000;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.button-group a,
+.button-group form button {
+    padding: 10px 15px;
+    background: #cc0000;
+    color: white;
+    text-decoration: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 14px;
+}
+
+.button-group a:hover,
+.button-group form button:hover {
+    background: #990000;
+}
+
+.button-group form {
+    margin: 0;
+}
+
+/* ==================== PRODUCT RESULT STYLING ==================== */
+.result {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 10px 0;
+}
+
+.result h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.result img {
+    max-width: 150px;
+    margin: 10px 0;
+}
+
+.result p {
+    margin: 10px 0;
+    color: #666;
+}
+
+.result h4 {
+    margin-top: 15px;
+    color: #333;
+}
+
+.result ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.result li {
+    margin: 5px 0;
+    color: #666;
+}
+
+/* ==================== ADMIN PAGE ==================== */
+.admin-body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    margin: 0;
+    padding: 20px;
+}
+
+.admin-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.admin-container h1 {
+    color: #333;
+}
+
+.admin-container .button-group {
+    margin-bottom: 30px;
+}
+
+.admin-container .button-group a,
+.admin-container .button-group form button {
+    padding: 10px 20px;
+    background: #cc0000;
+    color: white;
+    text-decoration: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.admin-container .button-group a:hover,
+.admin-container .button-group form button:hover {
+    background: #990000;
+}
+
+.admin-container .button-group form {
+    margin: 0;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table thead {
+    background: #cc0000;
+    color: white;
+}
+
+table th,
+table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+table tbody tr:hover {
+    background: #f9f9f9;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.role-admin {
+    background: #cc0000;
+    color: white;
+}
+
+.role-user {
+    background: #e0e0e0;
+    color: #333;
+}
