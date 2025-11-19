@@ -1,3 +1,7 @@
+<?php
+// Access already checked in index.php before including this view
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -59,12 +63,43 @@
     button:hover {
       background: #990000;
     }
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .button-group a {
+      padding: 10px 15px;
+      background: #cc0000;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-block;
+    }
+    .button-group a:hover {
+      background: #990000;
+    }
   </style>
 </head>
 <body>
-
+<?php
+$role = $_SESSION['user']['role'];
+$username = htmlspecialchars($_SESSION['user']['username']);
+?>
 <div class="chat-container">
   <h2>Finn laveste pris på en matvare!</h2>
+  <p>Innlogget som: <strong><?= $username ?></strong> (<?= $role ?>)</p>
+  
+  <div class="button-group">
+    <?php if ($role === 'admin'): ?>
+      <a href="index.php?page=admin" class="nav-button">Gå til admin</a>
+    <?php endif; ?>
+    <form action="index.php?page=logout" method="post" style="margin: 0;">
+      <button type="submit">Logg ut</button>
+    </form>
+  </div>
+
   <div class="chat-box" id="chatBox"></div>
   <input type="text" id="userInput" placeholder="Skriv en melding..." />
   <button onclick="sendMessage()">Send</button>
