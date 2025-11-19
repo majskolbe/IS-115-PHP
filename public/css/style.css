@@ -404,3 +404,43 @@ table tbody tr:hover {
         width: 100%;
     }
 }
+
+.chat-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+.question-sidebar,
+.ean-sidebar {
+  flex: 1;
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.chat-container {
+  flex: 2;
+}
+
+.question-table,
+.ean-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.question-table th,
+.question-table td,
+.ean-table th,
+.ean-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+}
+
+.no-data {
+  text-align: center;
+  font-style: italic;
+}
