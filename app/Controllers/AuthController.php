@@ -1,119 +1,138 @@
 <?php
+/*
+Håndterer innlogging, registrering, utlogging og tilgangssjekk.
+Kommuniserer med UserModel for databaseoperasjoner.
+*/
 class AuthController {
+
     private $userModel;
 
     public function __construct(UserModel $userModel) {
         $this->userModel = $userModel;
     }
 
-    //funskjon for å validere brukerinput
-    private function validerInput(array $data): array {
-        $feil = [];
+    //Hjelpefunksjon for redirect med valgfri melding
+    private function redirect(string $page, string $type = null, string $message = null): void {
+        //setter opp url for redirect
+        $url = "index.php?page=$page";
+        if ($type && $message) {
+            $url .= "&$type=" . urlencode($message);
+        }
+        header("Location: $url");
+        exit; //stopper scriptet
+    }
 
-        if (!$data['fname']) $feil[] = "Fornavn må oppgis";
-        if (!$data['lname']) $feil[] = "Etternavn må oppgis";
-        if (!$data['epost'] || !filter_var($data['epost'], FILTER_VALIDATE_EMAIL)) $feil[] = "Ugyldig e-post";
-        if (!$data['username']) $feil[] = "Brukernavn må oppgis";
-        
-        if (empty($data['password']) || strlen($data['password']) < 8) {
-            $feil[] = "Passord må være minst 8 tegn langt";
+    //Validerer input ved registrering    
+    private function validateInput(array $data, ?UserModel $userModel = null): array {
+        $errors = [];
+
+        if (empty($data['fname'])) $errors[] = "Fornavn må oppgis";
+        if (empty($data['lname'])) $errors[] = "Etternavn må oppgis";
+        if (empty($data['email']) || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)){
+            $errors[] = "Ugyldig e-post";
         }
-        if (!empty($data['password']) && !preg_match('/[A-Z]/', $data['password'])) {
-            $feil[] = "Passord må inneholde minst en stor bokstav";
+        if (empty($data['username'])) $errors[] = "Brukernavn må oppgis";
+
+        $pw = $data['password'] ?? '';
+        if (strlen($pw) < 8) $errors[] = "Passord må være minst 8 tegn";
+        if (!preg_match('/[A-Z]/', $pw)) $errors[] = "Passord må inneholde en stor bokstav";
+        if (!preg_match('/[0-9]/', $pw)) $errors[] = "Passord må inneholde et tall";
+
+        // Sjekk om brukernavn allerede eksisterer
+        if ($userModel && !empty($data['username'])) {
+            if ($userModel->findByUsername($data['username'])) {
+                $errors[] = "Brukernavn er allerede i bruk";
+            }
         }
-        if (!empty($data['password']) && !preg_match('/[0-9]/', $data['password'])) {
-            $feil[] = "Passord må inneholde minst ett siffer";
-        }
-        
-        return $feil;
-    } 
+
+        return $errors;
+    }
+
+    //Viser views
+    public function loginPage(): void { include __DIR__ . '/../Views/LoginView.php'; }
+    public function registerPage(): void { include __DIR__ . '/../Views/RegisterView.php'; }
+    //void = ingen returverdi, kun kandling
    
-    public function loginPage(): void {
-        include __DIR__ . '/../Views/LoginView.php';
-    }
-
-    public function registerPage(): void {
-        include __DIR__ . '/../Views/RegisterView.php';
-    }
-
+    //Håndterer innlogging
     public function handleLogin(string $username, string $password): void {
-        // Sjekk om brukeren eksisterer
-        $userExists = $this->userModel->findByUsername($username);
-        
-        if (!$userExists) {
-            header("Location: index.php?page=login&error=Brukeren eksisterer ikke");
-            exit;
+        //henter bruker fra db basert på brukernavn
+        $user = $this->userModel->findByUsername($username);
+
+        //sjekker om bruker eksisterer
+        if (!$user) {
+            $this->redirect("login", "error", "Brukeren eksisterer ikke");
         }
 
+        //sjekker om bruker er utestengt
         if ($this->userModel->isLockedOut($username)) {
-            header("Location: index.php?page=login&error=Brukeren er midlertidig utestengt");
-            exit;
+            $this->redirect("login", "error", "For mange innloggingsforsøk. Du er utestengt i en time.");
         }
 
-        $user = $this->userModel->verifyPassword($username, $password);
-
-        if ($user) {
-            $_SESSION['user'] = $user;
-            $this->userModel->resetFailedAttempts($username);
-
-            $target = ($user['role'] === 'admin') ? 'admin' : 'chat';
-            header("Location: index.php?page=$target");
-            exit;
-        } else {
+        //verifiserer passord
+        if (!$this->userModel->verifyPassword($username, $password)) {
+            //hvis feil øker mislykkede forsøk
             $this->userModel->incrementFailedAttempts($username);
-            header("Location: index.php?page=login&error=Feil kombinasjon av brukernavn og passord");
-            exit;
+            $this->redirect("login", "error", "Feil brukernavn eller passord");
         }
+
+        // Gyldig login, lagrer brukerdata i session
+        $_SESSION['user'] = $user;
+        //nullstiller mislykkede login-forsøk
+        $this->userModel->resetFailedAttempts($username);
+
+        //bestemmer hvilken side brukeren kommer til basert på rolle
+        $page = ($user['role'] === 'admin') ? "admin" : "chat";
+        $this->redirect($page);
     }
 
+    //Håndterer registrering
     public function handleRegister(string $fname, string $lname, string $email, string $username, string $password): void {
-        // Valider input
-        $feil = $this->validerInput([
+
+        //validerer input
+        $errors = $this->validateInput([
             'fname' => $fname,
             'lname' => $lname,
             'email' => $email,
             'username' => $username,
             'password' => $password
-        ]);
-        
-        if (!empty($feil)) {
-            $errorMessage = implode(", ", $feil);
-            header("Location: index.php?page=register&error=" . urlencode($errorMessage));
-            exit;
-        }
-        
-        if ($this->userModel->findByUsername($username)) {
-            header("Location: index.php?page=register&error=Brukernavn er allerede i bruk");
-            exit;
+        ], $this->userModel);
+
+        //skriver ut feilmeldingene fra validering
+        if (!empty($errors)) {
+            $this->redirect("register", "error", implode(", ", $errors));
         }
 
+        //krypterer passord med hashing
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-        
-        // Sjekk om e-posten inneholder @admin for å gi admin-rolle
-        $role = (strpos($email, '@admin') !== false) ? 'admin' : 'user';
-        
-        $this->userModel->createUser($fname, $lname, $email, $username, $passwordHash, $role);
+        //setter bruker som admin om mail inneholder @admin
+        $role = str_contains($email, "@admin") ? "admin" : "user";
 
-        header("Location: index.php?page=login&message=Bruker opprettet, logg inn!");
-        exit;
+        //lagrer i databasen og redirect til login
+        $this->userModel->createUser($fname, $lname, $email, $username, $passwordHash, $role);
+        $this->redirect("login", "message", "Bruker opprettet! Logg inn.");
     }
 
+    //logger ut bruker ved å slette session
     public function logout(): void {
         session_destroy();
-        header("Location: index.php?page=login&message=Du er nå logget ut");
-        exit;
+        $this->redirect("login", "message", "Du er nå logget ut");
     }
 
-    public function checkAccess(?string $requiredRole = null): void {
+    //kalles på beskyttede sider. gir kun tilgang om bruker er logget in
+    public function requireLogin(): void {
         if (!isset($_SESSION['user'])) {
-            header("Location: index.php?page=login&error=Du må logge inn");
-            exit;
+            $this->redirect("login", "error", "Du må logge inn");
         }
+    }
 
-        if ($requiredRole && $_SESSION['user']['role'] !== $requiredRole) {
-            header("Location: index.php?page=access_denied");
-            exit;
+    //sjekker tilgang til side etter rolle
+    public function requireRole(string $role): void {
+        $this->requireLogin();
+
+        if ($_SESSION['user']['role'] !== $role) {
+            $this->redirect("chat", "error", "Du har ikke tilgang til denne siden");
         }
     }
 }
+
 ?>
