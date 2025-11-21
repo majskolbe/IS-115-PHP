@@ -109,6 +109,26 @@ a:hover {
     border: 1px solid #cfc;
 }
 
+/* Generic alert classes used in views */
+.alert {
+    padding: 10px 12px;
+    margin: 12px 0;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.alert-error {
+    background: #ffecec;
+    border: 1px solid #f5c6cb;
+    color: #900;
+}
+
+.alert-info {
+    background: #e8f6ff;
+    border: 1px solid #cfe8ff;
+    color: #036;
+}
+
 /* ==================== CHAT PAGE ==================== */
 .chat-body {
     font-family: Arial, sans-serif;
@@ -443,4 +463,14 @@ table tbody tr:hover {
 .no-data {
   text-align: center;
   font-style: italic;
+}
+
+
+.error-popup {
+    background: #ffdddd;
+    border-left: 4px solid #d00;
+    padding: 12px;
+    margin: 10px 0;
+    color: #900;
+    border-radius: 8px;
 }

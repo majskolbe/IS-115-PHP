@@ -1,19 +1,21 @@
+<?php
+//henter brukerens rolle, eller "user" om ingen rolle finnes
+$role = $_SESSION['user']['role'] ?? 'user';
+$username = htmlspecialchars($_SESSION['user']['username'] ?? '');
+?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="no">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat - Finn laveste pris</title>
+  <title>Chat</title>
   <link rel="stylesheet" href="public/css/style.css">
 </head>
 <body class="chat-body">
-<?php
-$role = $_SESSION['user']['role'];
-$username = htmlspecialchars($_SESSION['user']['username']);
-?>
 
 <div class="chat-wrapper">
-  <!-- Venstre sidebar: Eksempelspørsmål -->
+
+  <!-- Eksempelspørsmål -->
   <div class="question-sidebar">
     <h3>Eksempler på spørsmål</h3>
     <table class="question-table">
@@ -21,38 +23,43 @@ $username = htmlspecialchars($_SESSION['user']['username']);
         <tr><th>Spørsmål</th></tr>
       </thead>
       <tbody>
-        <?php
-          if (!empty($exampleQuestions)){
-            foreach ($exampleQuestions as $q)
-             echo '<tr><td>' . htmlspecialchars($q['question']) . '</td></tr>';
-          }else{
-            echo '<tr><td class="no-data">Ingen spørsmål registrert</td></tr>';
+        <?php 
+        if (!empty($exampleQuestions)){
+          foreach ($exampleQuestions as $q){
+            echo '<tr><td>' . htmlspecialchars($q['question']) . '</td></tr>';
           }
+        }else{
+          echo '<tr><td class="no-data">Ingen spørsmål registrert</td></tr>';
+        }
         ?>
       </tbody>
     </table>
   </div>
 
-  <!-- Midten: Chat -->
+  <!-- Chat -->
   <div class="chat-container">
     <h2>Finn laveste pris på en matvare!</h2>
     <p>Innlogget som: <strong><?= $username ?></strong> (<?= $role ?>)</p>
-    
+
     <div class="button-group">
-      <?php if ($role === 'admin'): ?>
         <a href="index.php?page=admin" class="nav-button">Gå til admin</a>
-      <?php endif; ?>
-      <form action="index.php?page=logout" method="post">
-        <button type="submit">Logg ut</button>
-      </form>
+        <form action="index.php?page=logout" method="post">
+            <button type="submit">Logg ut</button>
+        </form>
     </div>
 
+    <?php 
+    if (!empty($_GET['error'])){
+      echo '<div class="alert alert-error">' . htmlspecialchars($_GET['error']) . '</div>';
+    }
+    ?>
+
     <div class="chat-box" id="chatBox"></div>
-    <input type="text" id="userInput" placeholder="Skriv en melding..." />
+    <input type="text" id="userInput" placeholder="Skriv en melding...">
     <button onclick="sendMessage()">Send</button>
   </div>
 
-  <!-- Høyre sidebar: Foreslåtte varer -->
+  <!-- EAN-koder -->
   <div class="ean-sidebar">
     <h3>Foreslåtte varer</h3>
     <table class="ean-table">
@@ -63,62 +70,25 @@ $username = htmlspecialchars($_SESSION['user']['username']);
         </tr>
       </thead>
       <tbody>
-
-      <?php
+        <?php 
         if (!empty($eanCodes)){
           foreach ($eanCodes as $ean){
             echo '<tr>
               <td>' . htmlspecialchars($ean['product_name']) .'</td>
-              <td class="ean-code">' . htmlspecialchars($ean['ean_code']) . '</td>
+              <td>' . htmlspecialchars($ean['ean_code']) . '</td>
             </tr>';
+          }
+        }else{
+          echo '<tr><td colspan="2" class="no-data">Ingen varer registrert</td></tr>';
         }
-          }else{
-            echo '<tr><td colspan="2" class="no-data">Ingen varer registrert</td></tr>';
-          }    
-
-      ?>
-      
+        ?>
       </tbody>
     </table>
   </div>
+
 </div>
 
-<script>
-  async function sendMessage() {
-    const input = document.getElementById("userInput");
-    const chatBox = document.getElementById("chatBox");
-    const message = input.value.trim();
-
-    if (message === "") return;
-
-    chatBox.innerHTML += `<div class="message user"><strong>Du:</strong> ${message}</div>`;
-    input.value = "";
-
-    try {
-      const response = await fetch("./app/Controllers/Chat_backend.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message })
-      });
-
-      const data = await response.json();
-      const reply = data.reply || data.error || "Ingen svar mottatt.";
-
-      chatBox.innerHTML += `<div class="message bot"><strong>Bot:</strong> ${reply}</div>`;
-      chatBox.scrollTop = chatBox.scrollHeight;
-    } catch (error) {
-      console.error("Fetch error:", error);
-      chatBox.innerHTML += `<div class="message bot"><strong>Bot:</strong> Feil ved henting av svar: ${error.message}</div>`;
-    }
-  }
-
-  document.getElementById("userInput").addEventListener("keydown", function(event) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      sendMessage();
-    }
-  });
-</script>
+<script src="public/js/chat.js"></script>
 
 </body>
 </html>
