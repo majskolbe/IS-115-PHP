@@ -56,7 +56,8 @@ $username = htmlspecialchars($_SESSION['user']['username'] ?? '');
 
     <div class="chat-box" id="chatBox"></div>
     <input type="text" id="userInput" placeholder="Skriv en melding...">
-    <button onclick="sendMessage()">Send</button>
+    <button id="sendBtn">Send</button>
+
   </div>
 
   <!-- EAN-koder -->

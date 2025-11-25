@@ -3,50 +3,55 @@ require_once __DIR__ . '/../../config/db_connect.php';
 
 class ChatModel {
     private $db;
-    private $tableExists = true;
 
     public function __construct() {
-        try {
-            $this->db = (new Database())->tilkobling;
-            $stmt = $this->db->query("SHOW TABLES LIKE 'chatbot_hints'");
-            $this->tableExists = $stmt->rowCount() > 0;
-        } catch (Exception $e) {
-            $this->tableExists = false;
-        }
+        $this->db = (new Database())->tilkobling;
     }
 
-    //Henter hint-svar fra chatbot_hints-tabellen
-    public function getHintReply($userInput) {
-        if (!$this->tableExists) {
-            return null;
-        }
-
+    // Matcher brukerinput mot pattern-regex i databasen
+   public function getResponseByPattern($userInput) {
         try {
-            $stmt = $this->db->prepare("SELECT reply FROM chatbot_hints WHERE question LIKE :input");
-            $likeInput = '%' . $userInput . '%';
-            $stmt->bindParam(':input', $likeInput, PDO::PARAM_STR);
-            $stmt->execute();
+            $stmt = $this->db->query("SELECT intent, pattern, response FROM chat_responses");
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $result ? $result['reply'] : null;
+            foreach ($rows as $row) {
+                $pattern = '/' . $row['pattern'] . '/iu';
+
+                if (preg_match($pattern, $userInput)) {
+                    // RIKTIG: returner selve svaret, ikke intent-navnet
+                    return $row['response'];
+                }
+            }
+
+            return null;
         } catch (Exception $e) {
             return null;
         }
     }
 
-    //Hent pris for EAN hos spesifikk butikk
-    public function getPriceByEANAndStore($ean, $store) {
-        try {
-            $query = "SELECT price FROM products WHERE ean = :ean AND store = :store LIMIT 1";
-            $stmt = $this->db->prepare($query);
-            $stmt->bindParam(':ean', $ean);
-            $stmt->bindParam(':store', $store);
-            $stmt->execute();
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $result ? $result['price'] : null;
-        } catch (Exception $e) {
-            return null;
+
+    public function detectIntentByPattern($userInput) {
+        //sjekker intent
+        $stmt = $this->db->query("SELECT intent, pattern FROM chat_responses WHERE pattern IS NOT NULL");
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($rows as $row) {
+            if (preg_match('/' . $row['pattern'] . '/iu', $userInput)) {
+                return $row['intent'];
+            }
         }
+
+        // Deretter: sjekk EAN som fallback-intent
+        if (preg_match('/\b\d{13}\b/', $userInput)) {
+            return 'ean_lookup';
+        }
+
+        return 'unknown';
     }
+
+
+
+
 }
+
 ?>
