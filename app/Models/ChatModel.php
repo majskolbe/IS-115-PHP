@@ -31,23 +31,30 @@ class ChatModel {
 
 
     public function detectIntentByPattern($userInput) {
-        //sjekker intent
+        //hardkodet inn matching for produktbeskrivelse
+        if (preg_match('/(?:hva er|beskriv|beskrivelse av|info om|fortell om)\s*(\d{13})/iu', $userInput)) {
+            return 'product_description';
+        }
+
         $stmt = $this->db->query("SELECT intent, pattern FROM chat_responses WHERE pattern IS NOT NULL");
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($rows as $row) {
-            if (preg_match('/' . $row['pattern'] . '/iu', $userInput)) {
+            $regex = '/' . $row['pattern'] . '/iu';
+            if (preg_match($regex, $userInput)) {
                 return $row['intent'];
             }
         }
 
-        // Deretter: sjekk EAN som fallback-intent
+        // fallback EAN
         if (preg_match('/\b\d{13}\b/', $userInput)) {
             return 'ean_lookup';
         }
 
         return 'unknown';
     }
+
+
 
     public function getPatternByIntent(string $intent): ?string {
         try {
@@ -58,7 +65,18 @@ class ChatModel {
         } catch (Exception $e) {
             return null;
         }
-}
+    }
+
+    public function getResponseByIntent(string $intent): ?string {
+        try {
+            $stmt = $this->db->prepare("SELECT response FROM chat_responses WHERE intent = :intent LIMIT 1");
+            $stmt->execute(['intent' => $intent]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row['response'] ?? null;
+        } catch (Exception $e) {
+            return null;
+        }
+    }
 
 
 
