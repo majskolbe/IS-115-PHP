@@ -13,88 +13,121 @@ class ChatController {
         $this->scanner = new StrekkodeScanner($api);
     }
 
-    public function handleUserMessage($message) {
-        $message = trim(preg_replace('/\s+/', ' ', $message));
+
+    public function handleUserMessage($message){
+        $message = $this->normalizeMessage($message);
         $intent = $this->model->detectIntentByPattern($message);
         $ean = $this->extractEAN($message);
-        
-        // Butikkspørring
-        if ($intent === 'store_price_lookup') {
-            if (preg_match('/^hva koster\s+(\d{13})\s+(hos|i|på)\s+([A-Za-zÆØÅæøå\s]+)\??$/iu', $message, $matches)) {
-                $ean = $matches[1];
-                $store = mb_convert_case(trim($matches[3]), MB_CASE_TITLE, 'UTF-8');
 
-                $resultat = $this->scanner->skannProdukt($ean);
-                if ($resultat && !empty($resultat['priser'])) {
-                    foreach ($resultat['priser'] as $pris) {
-                        if (strcasecmp($pris['butikk'], $store) === 0) {
-                            return "Prisen på EAN $ean hos $store er {$pris['pris']} kr.";
-                        }
-                    }
-                    return "Fant ingen pris for EAN $ean hos $store.";
-                }
-                return "Fant ingen prisinformasjon for EAN $ean.";
-            }
+        switch ($intent){
+            case 'store_price_lookup':
+                return $this->handleStorePriceLookup($message);
+            case 'product_description':
+                return $this->handleProductDescription($message);
+            case 'ean_lookup':
+                return $this->handleEANLookup($ean);
+            default:
+                return $this->handlePatternOrFallback($message);
         }
+    }
 
-        // Produktbeskrivelse 
-        if ($intent === 'product_description') {
-            $ean = $this->extractEAN($message);
-            if ($ean) {
-                $resultat = $this->scanner->skannProdukt($ean);
-                if ($resultat && !empty($resultat['beskrivelse'])) {
-                    $navn = htmlspecialchars($resultat['navn'] ?? 'Produktet');
-                    $beskrivelse = htmlspecialchars($resultat['beskrivelse']);
-                    return "<div class=\"product-info\"><p><strong>$navn</strong></p><p>$beskrivelse</p></div>";
-                }
-                return "Beklager, jeg fant ingen beskrivelse for EAN $ean.";
-            }
-        }
+    private function normalizeMessage(string $message): string{
+        return trim(preg_replace('/\s+/', ' ', $message));
+    }
 
-        // EAN-oppslag
-        if ($intent === 'ean_lookup' && $ean) {
+    private function handleStorePriceLookup(string $message): string {
+        $pattern = $this->model->getPatternByIntent('store_price_lookup');
+        if (!$pattern) return "Beklager, mønsteret for denne intenten finnes ikke.";
+
+        $regex = '/^' . $pattern . '\??$/iu';
+
+        if (preg_match($regex, $message, $matches)) {
+            $ean = $matches[1];
+            $store = mb_convert_case(trim($matches[3]), MB_CASE_TITLE, 'UTF-8');
+
             $resultat = $this->scanner->skannProdukt($ean);
+
             if ($resultat && !empty($resultat['priser'])) {
-                $billigst = $this->scanner->finnBilligstePris($resultat['priser']);
-                $andrePriser = $this->scanner->hentAndrePriser($resultat['priser']);
-
-                $navn = $resultat['navn'] ?? 'Ukjent';
-                $merke = $resultat['merke'] ?? '';
-                $bilde = $resultat['bilde'] ?? null;
-
-                $produktTekst = $merke ? "$navn ($merke)" : $navn;
-                $replyText = "Produkt: $produktTekst";
-
-                if ($bilde) {
-                    $replyText .= "\nBilde: $bilde";
-                }
-
-                if ($billigst) {
-                    $prisVerdi = $billigst['pris'];
-                    $butikkNavn = $billigst['butikk'];
-                    $replyText .= "\nBilligste pris: $prisVerdi kr hos $butikkNavn";
-                } else {
-                    $replyText .= "\nIngen priser funnet.";
-                }
-
-                if (!empty($andrePriser)) {
-                    $replyText .= "\nAndre butikker:";
-                    foreach ($andrePriser as $pris) {
-                        $replyText .= "\n- {$pris['butikk']}: {$pris['pris']} kr";
+                foreach ($resultat['priser'] as $pris) {
+                    if (strcasecmp($pris['butikk'], $store) === 0) {
+                        return "Prisen på EAN $ean hos $store er {$pris['pris']} kr.";
                     }
                 }
-
-                return $replyText;
+                return "Fant ingen pris for EAN $ean hos $store.";
             }
+
             return "Fant ingen prisinformasjon for EAN $ean.";
         }
 
+        return "Beklager, jeg kunne ikke forstå butikkspørringen.";
+    }
 
-        // Mønsterbasert svar
+    private function handleProductDescription(string $message): string {
+        $pattern = $this->model->getPatternByIntent('product_description');
+        if (!$pattern) return "Beklager, mønsteret for produktbeskrivelse finnes ikke.";
+
+        $regex = '/' . $pattern . '/iu';
+
+        if (preg_match($regex, $message, $matches)) {
+            // EAN ligger i andre capture group (\d{13})
+            $ean = $matches[1] ?? null;
+            if (!$ean) return "Ingen EAN oppgitt i meldingen.";
+
+            $resultat = $this->scanner->skannProdukt($ean);
+            if ($resultat && !empty($resultat['beskrivelse'])) {
+                $navn = htmlspecialchars($resultat['navn'] ?? 'Produktet');
+                $beskrivelse = htmlspecialchars($resultat['beskrivelse']);
+                return "<div class=\"product-info\"><p><strong>$navn</strong></p><p>$beskrivelse</p></div>";
+            }
+
+            return "Beklager, jeg fant ingen beskrivelse for EAN $ean.";
+        }
+
+        return "Beklager, jeg forstod ikke hvilket produkt du mente.";
+    }
+
+    private function handleEANLookup(?string $ean): string{
+        if (!$ean) return "Ingen EAN oppgitt.";
+
+        $resultat = $this->scanner->skannProdukt($ean);
+        if (!$resultat || empty($resultat['priser'])) return "Fant ingen prisinformasjon for EAN $ean.";
+
+        $billigst = $this->scanner->finnBilligstePris($resultat['priser']);
+        $andrePriser = $this->scanner->hentAndrePriser($resultat['priser']);
+
+        $navn = htmlspecialchars($resultat['navn'] ?? 'Ukjent');
+        $merke = htmlspecialchars($resultat['merke'] ?? '');
+        $bilde = $resultat['bilde'] ?? null;
+        $produktTittel = $merke ? "$navn <span class='brand'>($merke)</span>" : $navn;
+
+        $html = "<div class='ean-result'>";
+        $html .= "<h3 class='product-title'>$produktTittel</h3>";
+        if ($bilde) $html .= "<img src='$bilde' alt='Produktbilde' class='product-image' />";
+
+        if ($billigst) {
+            $pris = htmlspecialchars($billigst['pris']);
+            $butikk = htmlspecialchars($billigst['butikk']);
+            $html .= "<p class='price-best'><strong>Billigste pris:</strong> $pris kr hos $butikk</p>";
+        }
+
+        if (!empty($andrePriser)) {
+            $html .= "<h4>Andre butikker</h4><ul class='price-list'>";
+            foreach ($andrePriser as $pris) {
+                $butikk = htmlspecialchars($pris['butikk']);
+                $beløp = htmlspecialchars($pris['pris']);
+                $html .= "<li>$butikk — $beløp kr</li>";
+            }
+            $html .= "</ul>";
+        }
+
+        $html .= "</div>";
+        return $html;
+    }
+
+    private function handlePatternOrFallback(string $message): string {
         $patternReply = $this->model->getResponseByPattern($message);
         if ($patternReply) return $patternReply;
 
-        // Fallback
         return $this->model->getResponseByIntent('unknown') ?? "Beklager, jeg forstod ikke helt.";
     }
 
