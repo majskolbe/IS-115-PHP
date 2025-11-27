@@ -63,28 +63,20 @@ class ChatController {
     }
 
     private function handleProductDescription(string $message): string {
-        $pattern = $this->model->getPatternByIntent('product_description');
-        if (!$pattern) return "Beklager, mønsteret for produktbeskrivelse finnes ikke.";
+        $ean = $this->extractEAN($message);
+        if (!$ean) return "Ingen EAN oppgitt i meldingen.";
 
-        $regex = '/' . $pattern . '/iu';
-
-        if (preg_match($regex, $message, $matches)) {
-            // EAN ligger i andre capture group (\d{13})
-            $ean = $matches[1] ?? null;
-            if (!$ean) return "Ingen EAN oppgitt i meldingen.";
-
-            $resultat = $this->scanner->skannProdukt($ean);
-            if ($resultat && !empty($resultat['beskrivelse'])) {
-                $navn = htmlspecialchars($resultat['navn'] ?? 'Produktet');
-                $beskrivelse = htmlspecialchars($resultat['beskrivelse']);
-                return "<div class=\"product-info\"><p><strong>$navn</strong></p><p>$beskrivelse</p></div>";
-            }
-
-            return "Beklager, jeg fant ingen beskrivelse for EAN $ean.";
+        $resultat = $this->scanner->skannProdukt($ean);
+        if ($resultat && !empty($resultat['beskrivelse'])) {
+            $navn = htmlspecialchars($resultat['navn'] ?? 'Produktet');
+            $beskrivelse = htmlspecialchars($resultat['beskrivelse']);
+            return "<div class=\"product-info\"><p><strong>$navn</strong></p><p>$beskrivelse</p></div>";
         }
 
-        return "Beklager, jeg forstod ikke hvilket produkt du mente.";
+        return "Beklager, jeg fant ingen beskrivelse for EAN $ean.";
     }
+
+
 
     private function handleEANLookup(?string $ean): string{
         if (!$ean) return "Ingen EAN oppgitt.";
@@ -135,4 +127,5 @@ class ChatController {
         return preg_match('/\b\d{13}\b/', $text, $matches) ? $matches[0] : null;
     }
 }
+
 ?>
