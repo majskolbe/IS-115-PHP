@@ -3,7 +3,7 @@
 require_once __DIR__ . '/KassalappAPI.php';
 
 //Klasse med ansvar for å hente og formatere produktinformasjon
-class StrekkodeScanner {
+class EANLookupModel {
     private $api;
 
     //mottar KassalappAPI-instans, og lagrer den

@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../Models/ChatModel.php';
 require_once __DIR__ . '/../Models/KassalappAPI.php';
-require_once __DIR__ . '/../Models/StrekkodeScanner.php';
+require_once __DIR__ . '/../Models/EANLookupModel.php';
 
 class ChatController {
     private $model;
@@ -10,7 +10,7 @@ class ChatController {
     public function __construct() {
         $this->model = new ChatModel();
         $api = new KassalappAPI(KASSALAPP_API_KEY);
-        $this->scanner = new StrekkodeScanner($api);
+        $this->scanner = new EANLookupModel($api);
     }
 
 
