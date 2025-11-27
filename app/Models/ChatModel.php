@@ -49,6 +49,18 @@ class ChatModel {
         return 'unknown';
     }
 
+    public function getPatternByIntent(string $intent): ?string {
+        try {
+            $stmt = $this->db->prepare("SELECT pattern FROM chat_responses WHERE intent = :intent LIMIT 1");
+            $stmt->execute(['intent' => $intent]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row['pattern'] ?? null;
+        } catch (Exception $e) {
+            return null;
+        }
+}
+
+
 
 
 

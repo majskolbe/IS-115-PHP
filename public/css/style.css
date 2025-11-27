@@ -253,6 +253,7 @@ a:hover {
 }
 
 .result img {
+    width: 30%;
     max-width: 150px;
     margin: 10px 0;
 }
@@ -473,4 +474,13 @@ table tbody tr:hover {
     margin: 10px 0;
     color: #900;
     border-radius: 8px;
+}
+
+.product-image {
+    max-width: 150px;
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 10px 0;
+    object-fit: contain;
 }
