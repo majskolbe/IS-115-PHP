@@ -1,16 +1,16 @@
 <?php
 require_once __DIR__ . '/../Models/ChatModel.php';
-require_once __DIR__ . '/../Models/KassalappAPI.php';
+require_once __DIR__ . '/../Models/KassalappAPIModel.php';
 require_once __DIR__ . '/../Models/EANLookupModel.php';
 
 class ChatController {
     private $model;
-    private $scanner;
+    private $lookup;
 
     public function __construct() {
         $this->model = new ChatModel();
-        $api = new KassalappAPI(KASSALAPP_API_KEY);
-        $this->scanner = new EANLookupModel($api);
+        $api = new KassalappAPIModel(KASSALAPP_API_KEY);
+        $this->lookup = new EANLookupModel($api);
     }
 
 
@@ -45,18 +45,18 @@ class ChatController {
             $ean = $matches[1];
             $store = mb_convert_case(trim($matches[3]), MB_CASE_TITLE, 'UTF-8');
 
-            $resultat = $this->scanner->skannProdukt($ean);
+            $result = $this->lookup->lookupProductByEAN($ean);
 
-            if ($resultat && !empty($resultat['priser'])) {
-                foreach ($resultat['priser'] as $pris) {
-                    if (strcasecmp($pris['butikk'], $store) === 0) {
-                        return "Prisen på EAN $ean hos $store er {$pris['pris']} kr.";
+            if ($result && !empty($result['prices'])) {
+                foreach ($result['prices'] as $price) {
+                    if (strcasecmp($price['store'], $store) === 0) {
+                        return "Prisen på EAN $ean hos $store er {$price['price']} kr.";
                     }
                 }
-                return "Fant ingen pris for EAN $ean hos $store.";
+                return "Beklager, jeg fant ingen pris for EAN $ean hos $store.";
             }
 
-            return "Fant ingen prisinformasjon for EAN $ean.";
+            return "Beklager, jeg fant ingen prisinformasjon for EAN $ean.";
         }
 
         return "Beklager, jeg kunne ikke forstå butikkspørringen.";
@@ -66,11 +66,10 @@ class ChatController {
         $ean = $this->extractEAN($message);
         if (!$ean) return "Ingen EAN oppgitt i meldingen.";
 
-        $resultat = $this->scanner->skannProdukt($ean);
-        if ($resultat && !empty($resultat['beskrivelse'])) {
-            $navn = htmlspecialchars($resultat['navn'] ?? 'Produktet');
-            $beskrivelse = htmlspecialchars($resultat['beskrivelse']);
-            return "<div class=\"product-info\"><p><strong>$navn</strong></p><p>$beskrivelse</p></div>";
+        $result = $this->lookup->lookupProductByEAN($ean);
+        if ($result && !empty($result['description'])) {
+            $description = htmlspecialchars($result['description']);
+            return "<div class=\"product-info\"><p>$description</p></div>";
         }
 
         return "Beklager, jeg fant ingen beskrivelse for EAN $ean.";
@@ -81,33 +80,32 @@ class ChatController {
     private function handleEANLookup(?string $ean): string{
         if (!$ean) return "Ingen EAN oppgitt.";
 
-        $resultat = $this->scanner->skannProdukt($ean);
-        if (!$resultat || empty($resultat['priser'])) return "Fant ingen prisinformasjon for EAN $ean.";
+        $result = $this->lookup->lookupProductByEAN($ean);
+        if (!$result || empty($result['prices'])) return "Fant ingen prisinformasjon for EAN $ean.";
 
-        $billigst = $this->scanner->finnBilligstePris($resultat['priser']);
-        $andrePriser = $this->scanner->hentAndrePriser($resultat['priser']);
+        $lowestPrice = $this->lookup->findLowestPrice($result['prices']);
+        $alternativePrices = $this->lookup->getAlternativePrices($result['prices']);
 
-        $navn = htmlspecialchars($resultat['navn'] ?? 'Ukjent');
-        $merke = htmlspecialchars($resultat['merke'] ?? '');
-        $bilde = $resultat['bilde'] ?? null;
-        $produktTittel = $merke ? "$navn <span class='brand'>($merke)</span>" : $navn;
+        $name = htmlspecialchars($result['name'] ?? 'Ukjent');
+        $brand = htmlspecialchars($result['brand'] ?? '');
+        $image = $result['image'] ?? null;
 
         $html = "<div class='ean-result'>";
-        $html .= "<h3 class='product-title'>$produktTittel</h3>";
-        if ($bilde) $html .= "<img src='$bilde' alt='Produktbilde' class='product-image' />";
+        
+        if ($image) $html .= "<img src='$image' alt='Produktbilde' class='product-image' />";
 
-        if ($billigst) {
-            $pris = htmlspecialchars($billigst['pris']);
-            $butikk = htmlspecialchars($billigst['butikk']);
-            $html .= "<p class='price-best'><strong>Billigste pris:</strong> $pris kr hos $butikk</p>";
+        if ($lowestPrice) {
+            $price = htmlspecialchars($lowestPrice['price']);
+            $store = htmlspecialchars($lowestPrice['store']);
+            $html .= "<p class='price-best'>Billigste pris for $name er <strong>$price kr </strong> hos <strong> $store</strong>.</p>";
         }
 
-        if (!empty($andrePriser)) {
-            $html .= "<h4>Andre butikker</h4><ul class='price-list'>";
-            foreach ($andrePriser as $pris) {
-                $butikk = htmlspecialchars($pris['butikk']);
-                $beløp = htmlspecialchars($pris['pris']);
-                $html .= "<li>$butikk — $beløp kr</li>";
+        if (!empty($alternativePrices)) {
+            $html .= "Her er også prisene på andre butikker:<ul class='price-list'>";
+            foreach ($alternativePrices as $price) {
+                $store = htmlspecialchars($price['store']);
+                $amount = htmlspecialchars($price['price']);
+                $html .= "<li><strong> $store </strong> - $amount kr</li>";
             }
             $html .= "</ul>";
         }
