@@ -9,7 +9,7 @@ use GuzzleHttp\Exception\RequestException;
 Klasse med ansvar for kommunikasjonen med kassalapp sin API.
 Bruker guzzle for å gjøre API-kall enklere
 */
-class KassalappAPI {
+class KassalappAPIModel {
     private $client;
     private $apiKey;
     private const BASE_URL = 'https://kassal.app/api/v1/';

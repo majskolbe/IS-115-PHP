@@ -1,5 +1,5 @@
 <?php
-//henter brukerens rolle, eller "user" om ingen rolle finnes
+// henter brukerens rolle, eller "user" om ingen rolle finnes
 $role = $_SESSION['user']['role'] ?? 'user';
 $username = htmlspecialchars($_SESSION['user']['username'] ?? '');
 ?>
@@ -28,7 +28,7 @@ $username = htmlspecialchars($_SESSION['user']['username'] ?? '');
           foreach ($exampleQuestions as $q){
             echo '<tr><td>' . htmlspecialchars($q['question']) . '</td></tr>';
           }
-        }else{
+        } else {
           echo '<tr><td class="no-data">Ingen spørsmål registrert</td></tr>';
         }
         ?>
@@ -57,7 +57,6 @@ $username = htmlspecialchars($_SESSION['user']['username'] ?? '');
     <div class="chat-box" id="chatBox"></div>
     <input type="text" id="userInput" placeholder="Skriv en melding...">
     <button id="sendBtn">Send</button>
-
   </div>
 
   <!-- EAN-koder -->
@@ -79,7 +78,7 @@ $username = htmlspecialchars($_SESSION['user']['username'] ?? '');
               <td>' . htmlspecialchars($ean['ean_code']) . '</td>
             </tr>';
           }
-        }else{
+        } else {
           echo '<tr><td colspan="2" class="no-data">Ingen varer registrert</td></tr>';
         }
         ?>
