@@ -17,7 +17,7 @@
 
     try {
       //fetch sender HTTP-forespørsel til server uten at sidne må lastes på nytt
-      const res = await fetch("./app/Controllers/Chat_backend.php", {
+      const res = await fetch("./app/Controllers/ChatBackend.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message })
