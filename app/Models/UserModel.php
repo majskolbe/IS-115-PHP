@@ -14,14 +14,14 @@ class UserModel {
         $this->db = $pdo;
     }
 
-    /*Henter bruker gjennom brukernavn */
+    //Henter bruker gjennom brukernavn
     public function findByUsername(string $username): ?array {
         $stmt = $this->db->prepare("SELECT * FROM users WHERE username = :u");
         $stmt->execute(['u' => $username]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
-    /*Oppretter ny bruker */
+    //Oppretter ny bruker 
     public function createUser(string $fname, string $lname, string $email, string $username, string $hash, string $role): bool {
         $stmt = $this->db->prepare("
             INSERT INTO users (fname, lname, email, username, password_hash, role)
@@ -37,7 +37,7 @@ class UserModel {
         ]); //true ved vellykket
     }
 
-    /*Verifiserer passord mot hash */
+    //Verifiserer passord mot hash
     public function verifyPassword(string $username, string $password): ?array {
         $user = $this->findByUsername($username);
         //returnerer bruker om bruker finnes og passord matcher hash
@@ -46,7 +46,7 @@ class UserModel {
             : null;
     }
 
-    /* Registrerer mislykket innlogging */
+    //Registrerer mislykket innlogging
     public function incrementFailedAttempts(string $username): void {
         //øker med 1 og setter tidspunkt
         $this->db->prepare("
@@ -56,7 +56,7 @@ class UserModel {
         ")->execute(['u' => $username]);
     }
 
-    /*Nullstiller mislykkede innloggingsforsøk */
+    //Nullstiller mislykkede innloggingsforsøk
     public function resetFailedAttempts(string $username): void {
         $this->db->prepare("
             UPDATE users SET failed_attempts = 0,
@@ -65,7 +65,7 @@ class UserModel {
         ")->execute(['u' => $username]);
     }
 
-    /*Sjekker om bruker er utestengt */
+    //Sjekker om bruker er utestengt
     public function isLockedOut(string $username): bool {
         $user = $this->findByUsername($username);
         if (!$user) return false;
@@ -78,7 +78,7 @@ class UserModel {
         return $tooMany && $withinHour;
     }
 
-    /*Henter alle brukere til adminsidens tabell */
+    //Henter alle brukere til adminsidens tabell
     public function getAllUsers(): array {
         $stmt = $this->db->query("
             SELECT id, fname, lname, email, username, role
@@ -87,4 +87,3 @@ class UserModel {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
-?>

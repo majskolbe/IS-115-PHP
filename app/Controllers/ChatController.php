@@ -25,7 +25,7 @@ class ChatController {
         $this->service = new ChatService($this->model, $lookup);
     }
 
-    //hånterer melding fra bruker
+    //hånterer melding fra bruker og returnerer svar
     public function handleUserMessage($message) {
         
         $message = MessageUtils::normalize($message);
@@ -34,14 +34,12 @@ class ChatController {
 
         $result = $this->service->processIntent($intent, $message, $ean);
 
-        error_log("Intent: $intent");
-        error_log("EAN: $ean");
-        error_log("Result: " . print_r($result, true));
-
+        //fallback melding om resultat ikke er gyldig
         if (!is_array($result)) {
             $result = ['reply' => "Beklager, jeg forstod ikke helt. Prøv gjerne å sende en EAN-kode."];
         }
 
+        //returnerer svar via view
         return ChatResponseView::render($intent, $result);
     }
 

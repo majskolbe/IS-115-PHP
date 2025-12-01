@@ -32,6 +32,7 @@ class AuthController {
         include __DIR__ . '/../Views/RegisterView.php';
     }
 
+    //sjekker CSRF-token for å forhindre falske forespørseler
     private function checkCsrf(): void {
         $token = $_POST['csrf_token'] ?? '';
         if (!CsrfHelper::validateToken($token)) {
@@ -48,7 +49,7 @@ class AuthController {
         if (!$user) {
             RedirectHelper::to("login", "error", "Brukeren eksisterer ikke");
         }
-        //Sjekker om brukeren er låst ute, for mange forsøk utestenger i en time
+        //Sjekker om brukeren er utestengt, for mange forsøk utestenger i en time
         if ($this->userModel->isLockedOut($username)) {
             RedirectHelper::to("login", "error", "For mange innloggingsforsøk. Du er utestengt i en time.");
         }
@@ -62,24 +63,22 @@ class AuthController {
 
 
 
-        //Gyldig innlogging, lagrer brukerdata i session
-
+        //Gyldig innlogging: lagrer brukerdata i session
         $_SESSION['user'] = $user;
         //Nullstiller misslykkede innloggingsforsøk hvis det har vært noen
         $this->userModel->resetFailedAttempts($username);
-        //Sender brukeren til riktig sted, basert på om de er admin eller ikke
+        //Sender brukeren til riktig sted, basert på rolle
         $page = ($user['role'] === 'admin') ? "admin" : "chat";
         RedirectHelper::to($page);
     }
 
     //Håndterer registrering
     public function handleRegister(string $fname, string $lname, string $email, string $username, string $password): void {
-
-        $this->checkCsrf();
+        $this->checkCsrf(); //CSRF-beskyttelse
 
         //Validerer input (sjekker felter, e-post, passordkrav, brukernavn)
         $errors = $this->validator->validateRegister($fname, $lname, $email, $username, $password);
-        //Stopper og sender tilbake til register-siden hvis validering feiler
+        //hvis validering feiler: redirect med feilmelding
         if (!empty($errors)) {
             RedirectHelper::to("register", "error", implode(", ", $errors));
         }
@@ -92,14 +91,12 @@ class AuthController {
         RedirectHelper::to("login", "message", "Bruker opprettet! Logg inn.");
     }
 
-    //Logger ut bruker
-    //Sletter hele session
-    //Sender brukeren tilbake til login-siden med melding
+    //Logger ut bruker og avslutter session
     public function logout(): void {
         // Tøm alle session-variabler
         $_SESSION = [];
 
-        // Slett session-cookien
+        // Slett session-cookien hvis den brukes
         if (ini_get("session.use_cookies")) {
             $params = session_get_cookie_params();
             setcookie(session_name(), '', time() - 42000,
@@ -111,17 +108,14 @@ class AuthController {
         // Ødelegg selve sessionen
         session_destroy();
 
-        // Redirect til login
+        // Redirect til login med melding
         RedirectHelper::to("login", "message", "Du er nå logget ut");
     }
 
-
-
-    //Tilgangskontroll
+    //Tilgangskontroller
     public function requireLogin(): void {
         $this->accessControl->requireLogin();
     }
-
     public function requireRole(string $role): void {
         $this->accessControl->requireRole($role);
     }

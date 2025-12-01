@@ -16,7 +16,6 @@ ob_start();
         <input type="password" name="password" placeholder="Passord" required>
         <button type="submit">Logg inn</button>
     </form>
-
     <?php if ($error): ?>
         <div class="alert alert-error"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>

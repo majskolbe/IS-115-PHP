@@ -28,7 +28,7 @@ $infoModel = new InfoPrintModel($pdo);
 $authController = new AuthController($userModel);
 $chatController = new ChatController();
 
-// Hent meldinger fra URL (gjøres tilgjengelig for views)
+// Hent meldinger fra URL så de kan vises i views
 $error = $_GET['error'] ?? null;
 $message = $_GET['message'] ?? null;
 
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         RedirectHelper::to("login", "error", "Ugyldig forespørsel (CSRF)");
     }
 
-    // Registrering
+    // Registrering av ny bruker
     if (isset($_POST['action']) && $_POST['action'] === 'register') {
         $authController->handleRegister(
             $_POST['fname'] ?? '',
@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Router for å finne riktig side
+// Router for å finne riktig side å laste inn
 $page = $_GET['page'] ?? 'home';
 
 switch ($page) {
@@ -83,6 +83,7 @@ switch ($page) {
 
 
     case 'logout':
+        //krever POST og gyldig CSRF-token
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $token = $_POST['csrf_token'] ?? '';
             if (!CsrfHelper::validateToken($token)) {
@@ -96,24 +97,30 @@ switch ($page) {
 
 
     case 'chat':
+        //krever innlogging
         $authController->requireLogin();
         $eanCodes = $infoModel->getAllEanCodes();
         $exampleQuestions = $infoModel->getAllExampleQuestions();
+        //viser chat-siden
         require __DIR__ . '/app/Views/ChatView.php';
         break;
 
     case 'admin':
+        //krever admin-rolle
         $authController->requireRole("admin");
         $users = $userModel->getAllUsers();
         $username = $_SESSION['user']['username'] ?? '';
+        //viser admin-siden
         require __DIR__ . '/app/Views/AdminView.php';
         break;
 
     default:
     case 'home':
+        //dersom ikke innlogget: vis login-siden
         if (empty($_SESSION['user'])) {
             $authController->loginPage();
         } else {
+            //hvis innlogget: redirect til chat
             header("Location: index.php?page=chat");
             exit;
         }

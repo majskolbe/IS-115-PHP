@@ -1,11 +1,9 @@
 <?php
+/*
+klasse med ansvar for å generere og validere CSRF-token
+*/
 class CsrfHelper {
-
-    /**
-     * Lager en CSRF-token og lagrer den i session.
-     * Brukes for å beskytte skjemaer mot angrep (Cross-Site Request Forgery).
-     * Returnerer alltid den gjeldende tokenen.
-     */
+    //genererer og returnerer en CSRF-token
     public static function generateToken(): string {
         if (empty($_SESSION['csrf_token'])) {
             // Genererer en tilfeldig streng og konverterer til hex
@@ -14,11 +12,7 @@ class CsrfHelper {
         return $_SESSION['csrf_token'];
     }
 
-    /**
-     * Sjekker om en innsendt CSRF-token er gyldig.
-     * Sammenligner tokenen fra skjemaet med den som ligger i session.
-     * Returnerer true hvis de matcher, ellers false.
-     */
+    //validerer en CSRF-token fra forespørselen
     public static function validateToken(string $token): bool {
         return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
     }

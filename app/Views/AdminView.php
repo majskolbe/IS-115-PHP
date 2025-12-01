@@ -1,5 +1,4 @@
 <?php
-// AdminView.php
 $title = "Admin Panel";
 $bodyClass = "admin-body";
 
