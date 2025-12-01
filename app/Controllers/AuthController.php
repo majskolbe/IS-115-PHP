@@ -42,49 +42,59 @@ class AuthController {
     //Håndterer innlogging
     public function handleLogin(string $username, string $password): void {
         $this->checkCsrf();
+        //Henter brukeren fra databasen, basert på brukernavn
         $user = $this->userModel->findByUsername($username);
-
+        //Sjekker om bruken finnes
         if (!$user) {
             RedirectHelper::to("login", "error", "Brukeren eksisterer ikke");
         }
-
+        //Sjekker om brukeren er låst ute, for mange forsøk utestenger i en time
         if ($this->userModel->isLockedOut($username)) {
             RedirectHelper::to("login", "error", "For mange innloggingsforsøk. Du er utestengt i en time.");
         }
-
+        //Verifiserer passordet mot databasen
         if (!$this->userModel->verifyPassword($username, $password)) {
             $this->userModel->incrementFailedAttempts($username);
             RedirectHelper::to("login", "error", "Feil brukernavn eller passord");
         }
-
         session_regenerate_id(true);
         $_SESSION['user'] = $user;
 
 
-        $_SESSION['user'] = $user;
-        $this->userModel->resetFailedAttempts($username);
 
+        //Gyldig innlogging, lagrer brukerdata i session
+
+        $_SESSION['user'] = $user;
+        //Nullstiller misslykkede innloggingsforsøk hvis det har vært noen
+        $this->userModel->resetFailedAttempts($username);
+        //Sender brukeren til riktig sted, basert på om de er admin eller ikke
         $page = ($user['role'] === 'admin') ? "admin" : "chat";
         RedirectHelper::to($page);
     }
 
     //Håndterer registrering
     public function handleRegister(string $fname, string $lname, string $email, string $username, string $password): void {
-        $this->checkCsrf();
-        $errors = $this->validator->validateRegister($fname, $lname, $email, $username, $password);
 
+        $this->checkCsrf();
+
+        //Validerer input (sjekker felter, e-post, passordkrav, brukernavn)
+        $errors = $this->validator->validateRegister($fname, $lname, $email, $username, $password);
+        //Stopper og sender tilbake til register-siden hvis validering feiler
         if (!empty($errors)) {
             RedirectHelper::to("register", "error", implode(", ", $errors));
         }
 
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
         $role = str_contains($email, "@admin") ? "admin" : "user";
-
+        //Oppretter en ny bruker i databasen
         $this->userModel->createUser($fname, $lname, $email, $username, $passwordHash, $role);
+        //Sender til login-siden med bekreftelsesmelding
         RedirectHelper::to("login", "message", "Bruker opprettet! Logg inn.");
     }
 
     //Logger ut bruker
+    //Sletter hele session
+    //Sender brukeren tilbake til login-siden med melding
     public function logout(): void {
         // Tøm alle session-variabler
         $_SESSION = [];
