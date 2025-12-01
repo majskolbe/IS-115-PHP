@@ -44,6 +44,7 @@ $username = htmlspecialchars($_SESSION['user']['username'] ?? '');
     <div class="button-group">
         <a href="index.php?page=admin" class="nav-button">Gå til admin</a>
         <form action="index.php?page=logout" method="post">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(CsrfHelper::generateToken()) ?>">
             <button type="submit">Logg ut</button>
         </form>
     </div>

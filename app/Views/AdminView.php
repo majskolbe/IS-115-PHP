@@ -1,22 +1,18 @@
 <?php
-$username = htmlspecialchars($_SESSION['user']['username'] ?? '');
-?>
-<!DOCTYPE html>
-<html lang="no">
-<head>
-    <meta charset="UTF-8">
-    <title>Admin Panel</title>
-    <link rel="stylesheet" href="public/css/style.css">
-</head>
-<body class="admin-body">
+// AdminView.php
+$title = "Admin Panel";
+$bodyClass = "admin-body";
 
+ob_start(); // start buffer
+?>
 <div class="admin-container">
     <h1>Admin Panel</h1>
-    <p>Innlogget som: <strong><?= $username ?></strong></p>
+    <p>Innlogget som: <strong><?= htmlspecialchars($username) ?></strong></p>
 
     <div class="button-group">
         <a href="index.php?page=chat">Gå til chat</a>
         <form action="index.php?page=logout" method="post">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(CsrfHelper::generateToken()) ?>">
             <button type="submit">Logg ut</button>
         </form>
     </div>
@@ -32,20 +28,18 @@ $username = htmlspecialchars($_SESSION['user']['username'] ?? '');
             </tr>
         </thead>
         <tbody>
-            <?php 
-            foreach ($users as $u){
-                echo '<tr>
-                    <td>' . htmlspecialchars($u['fname'] . ' ' . $u['lname']) .'</td>
-                    <td>'. htmlspecialchars($u['email']) .'</td>
-                    <td>'. htmlspecialchars($u['username']) .'</td>
-                    <td><span class="role-badge role-' . $u['role'] .'">' . ucfirst($u['role']) .'</span></td>
-                </tr>';
-            }
-            ?>
+            <?php foreach ($users as $u): ?>
+                <tr>
+                    <td><?= htmlspecialchars($u['fname'] . ' ' . $u['lname']) ?></td>
+                    <td><?= htmlspecialchars($u['email']) ?></td>
+                    <td><?= htmlspecialchars($u['username']) ?></td>
+                    <td><span class="role-badge role-<?= htmlspecialchars($u['role']) ?>">
+                        <?= ucfirst($u['role']) ?></span></td>
+                </tr>
+            <?php endforeach; ?>
         </tbody>
     </table>
-
 </div>
-
-</body>
-</html>
+<?php
+$content = ob_get_clean();
+include __DIR__ . '/LayoutView.php';
