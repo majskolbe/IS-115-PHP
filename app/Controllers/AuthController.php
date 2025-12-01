@@ -3,6 +3,7 @@ require_once __DIR__ . '/../Models/UserModel.php';
 require_once __DIR__ . '/../Validators/UserValidator.php';
 require_once __DIR__ . '/../Helpers/RedirectHelper.php';
 require_once __DIR__ . '/../Services/AccessControl.php';
+require_once __DIR__ . '/../Helpers/CsrfHelper.php';
 
 /*
 Klasse med ansvar for å håndtere innlogging, registrering og utlogging.
@@ -31,8 +32,16 @@ class AuthController {
         include __DIR__ . '/../Views/RegisterView.php';
     }
 
+    private function checkCsrf(): void {
+        $token = $_POST['csrf_token'] ?? '';
+        if (!CsrfHelper::validateToken($token)) {
+            RedirectHelper::to("login", "error", "Ugyldig forespørsel (CSRF)");
+        }
+    }
+
     //Håndterer innlogging
     public function handleLogin(string $username, string $password): void {
+        $this->checkCsrf();
         $user = $this->userModel->findByUsername($username);
 
         if (!$user) {
@@ -48,6 +57,10 @@ class AuthController {
             RedirectHelper::to("login", "error", "Feil brukernavn eller passord");
         }
 
+        session_regenerate_id(true);
+        $_SESSION['user'] = $user;
+
+
         $_SESSION['user'] = $user;
         $this->userModel->resetFailedAttempts($username);
 
@@ -57,6 +70,7 @@ class AuthController {
 
     //Håndterer registrering
     public function handleRegister(string $fname, string $lname, string $email, string $username, string $password): void {
+        $this->checkCsrf();
         $errors = $this->validator->validateRegister($fname, $lname, $email, $username, $password);
 
         if (!empty($errors)) {
@@ -72,9 +86,26 @@ class AuthController {
 
     //Logger ut bruker
     public function logout(): void {
+        // Tøm alle session-variabler
+        $_SESSION = [];
+
+        // Slett session-cookien
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
+
+        // Ødelegg selve sessionen
         session_destroy();
+
+        // Redirect til login
         RedirectHelper::to("login", "message", "Du er nå logget ut");
     }
+
+
 
     //Tilgangskontroll
     public function requireLogin(): void {

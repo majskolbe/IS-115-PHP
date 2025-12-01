@@ -1,9 +1,7 @@
 <?php
-/**
- * UserValidator
- * -------------------------
- * Ansvar: Validerer input ved registrering.
- */
+/*
+Klasse med ansvar for validering av input for registrering
+*/
 class UserValidator {
     private $userModel;
 
@@ -11,6 +9,7 @@ class UserValidator {
         $this->userModel = $userModel;
     }
 
+    //sjekekr at påkrevde felt er fyllt ut, gyldig epost og krav for passord
     public function validateRegister(string $fname, string $lname, string $email, string $username, string $password): array {
         $errors = [];
 

@@ -484,3 +484,22 @@ table tbody tr:hover {
     margin: 10px 0;
     object-fit: contain;
 }
+
+.alert {
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.alert-error {
+  background-color: #f8d7da; /* lys rød bakgrunn */
+  color: #721c24;            /* mørk rød tekst */
+  border: 1px solid #f5c6cb;
+}
+
+.alert-success {
+  background-color: #d4edda; /* lys grønn bakgrunn */
+  color: #155724;            /* mørk grønn tekst */
+  border: 1px solid #c3e6cb;
+}
