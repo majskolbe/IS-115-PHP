@@ -1,8 +1,16 @@
 <?php
 require_once __DIR__ . '/../../config/db_connect.php';
 
+/*
+Klasse med ansvar for å koble chatbot-logikk til db.
+matcher brukerinput, identifiserer intents og returnerer passende svar
+*/
 class ChatModel {
     private $db;
+
+    // Konstanter for gjenbrukbare regex
+    private const EAN_REGEX = '/\b\d{13}\b/';
+    private const PRODUCT_DESC_REGEX = '/(?:hva er|beskriv|beskrivelse av|info om|fortell om)\s*(\d{13})/iu';
 
     public function __construct() {
         try {
@@ -13,84 +21,82 @@ class ChatModel {
         }
     }
 
-    // Matcher brukerinput mot pattern-regex i databasen
-    public function getResponseByPattern($userInput) {
+    //hente en enkelt verdi fra db
+    private function fetchSingleValue(string $sql, array $params, string $column): ?string {
         if (!$this->db) return null;
-
         try {
-            $stmt = $this->db->query("SELECT intent, pattern, response FROM chat_responses");
-            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            foreach ($rows as $row) {
-                $pattern = '/' . $row['pattern'] . '/iu';
-                if (preg_match($pattern, $userInput)) {
-                    return $row['response'];
-                }
-            }
-            return null;
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row[$column] ?? null;
         } catch (Exception $e) {
-            error_log("getResponseByPattern failed: " . $e->getMessage());
+            error_log("Database query failed: " . $e->getMessage());
             return null;
         }
     }
 
-    public function detectIntentByPattern($userInput) {
+    //henter alle patterns og responses fra db
+    private function getAllPatterns(): array {
+        if (!$this->db) return [];
+        try {
+            $stmt = $this->db->query("SELECT intent, pattern, response FROM chat_responses");
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log("getAllPatterns failed: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    //matcher brukerinput mot regex-mønstere lagret i db
+    public function getResponseByPattern(string $userInput): ?string {
+        foreach ($this->getAllPatterns() as $row) {
+            if (preg_match('/' . $row['pattern'] . '/iu', $userInput)) {
+                return $row['response'];
+            }
+        }
+        return null;
+    }
+
+    //oppdager intent basert på regex-mønstere
+    public function detectIntentByPattern(string $userInput): string {
         if (!$this->db) return 'unknown';
 
-        // Hardkodet matching for produktbeskrivelse
-        if (preg_match('/(?:hva er|beskriv|beskrivelse av|info om|fortell om)\s*(\d{13})/iu', $userInput)) {
+        // Hardkodet regel for produktbeskrivelse
+        if (preg_match(self::PRODUCT_DESC_REGEX, $userInput)) {
             return 'product_description';
         }
 
-        try {
-            $stmt = $this->db->query("SELECT intent, pattern FROM chat_responses WHERE pattern IS NOT NULL");
-            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            foreach ($rows as $row) {
-                $regex = '/' . $row['pattern'] . '/iu';
-                if (preg_match($regex, $userInput)) {
-                    return $row['intent'];
-                }
+        // Matcher mot patterns fra databasen
+        foreach ($this->getAllPatterns() as $row) {
+            if (!empty($row['pattern']) && preg_match('/' . $row['pattern'] . '/iu', $userInput)) {
+                return $row['intent'];
             }
-        } catch (Exception $e) {
-            error_log("detectIntentByPattern failed: " . $e->getMessage());
-            return 'unknown';
         }
 
-        // fallback EAN
-        if (preg_match('/\b\d{13}\b/', $userInput)) {
+        // Fallback: sjekk om input inneholder en EAN-kode
+        if (preg_match(self::EAN_REGEX, $userInput)) {
             return 'ean_lookup';
         }
 
         return 'unknown';
     }
 
+    //henter regex-pattern basert på intent
     public function getPatternByIntent(string $intent): ?string {
-        if (!$this->db) return null;
-
-        try {
-            $stmt = $this->db->prepare("SELECT pattern FROM chat_responses WHERE intent = :intent LIMIT 1");
-            $stmt->execute(['intent' => $intent]);
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $row['pattern'] ?? null;
-        } catch (Exception $e) {
-            error_log("getPatternByIntent failed: " . $e->getMessage());
-            return null;
-        }
+        return $this->fetchSingleValue(
+            "SELECT pattern FROM chat_responses WHERE intent = :intent LIMIT 1",
+            ['intent' => $intent],
+            'pattern'
+        );
     }
 
+    //henter response basert på intent
     public function getResponseByIntent(string $intent): ?string {
-        if (!$this->db) return null;
-
-        try {
-            $stmt = $this->db->prepare("SELECT response FROM chat_responses WHERE intent = :intent LIMIT 1");
-            $stmt->execute(['intent' => $intent]);
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $row['response'] ?? null;
-        } catch (Exception $e) {
-            error_log("getResponseByIntent failed: " . $e->getMessage());
-            return null;
-        }
+        return $this->fetchSingleValue(
+            "SELECT response FROM chat_responses WHERE intent = :intent LIMIT 1",
+            ['intent' => $intent],
+            'response'
+        );
     }
 }
 ?>

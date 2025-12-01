@@ -2,7 +2,10 @@
 // inkluderer API klassen
 require_once __DIR__ . '/KassalappAPIModel.php';
 
-// Klasse med ansvar for å hente og formatere produktinformasjon
+/* Klasse med ansvar for å hente og formatere produktinformasjon basert på EAN
+bruker KassalappAPIModel for API-kall, ekstraherer generell produktinfo,
+henter og sorterer priser fra ulike butikker
+*/
 class EANLookupModel {
     private $api;
 
@@ -22,7 +25,7 @@ class EANLookupModel {
 
             return $this->formatProductInfo($product['data']);
         } catch (\Throwable $e) {
-            // logg feilen for utvikling
+            // logger feil
             error_log("EAN lookup failed: " . $e->getMessage());
             // returner en trygg verdi til frontend
             return null;
@@ -36,11 +39,12 @@ class EANLookupModel {
                 return null;
             }
 
+            //returnerer ean, navn, merke, bilde og beskrivelse for produkt
             return [
-                'ean'         => $data['ean'] ?? null,
-                'name'        => $data['products'][0]['name'] ?? 'Ukjent produkt',
-                'brand'       => $data['products'][0]['brand'] ?? 'Ukjent merke',
-                'image'       => $data['products'][0]['image'] ?? null,
+                'ean' => $data['ean'] ?? null,
+                'name' => $data['products'][0]['name'] ?? 'Ukjent produkt',
+                'brand' => $data['products'][0]['brand'] ?? 'Ukjent merke',
+                'image' => $data['products'][0]['image'] ?? null,
                 'description' => $data['products'][0]['description'] ?? null
             ];
         } catch (\Throwable $e) {
@@ -49,7 +53,7 @@ class EANLookupModel {
         }
     }
 
-    // henter pris for produktet
+    // henter pris for produktet, returnerer liste med priser
     private function extractPrices($data){
         $prices = [];
         try {
@@ -86,7 +90,7 @@ class EANLookupModel {
         }
     }
 
-    // billigst pris = element 0 i prislisten
+    // returnerer billigste pris
     public function findLowestPrice(array $prices){
         try {
             return $prices[0] ?? null;
@@ -96,7 +100,7 @@ class EANLookupModel {
         }
     }
 
-    // returnerer resterende innhold av listen, uten element 0
+    // returnerer alternative priser(alle utenom sen billigste)
     public function getAlternativePrices(array $prices){
         try {
             return count($prices) > 1 ? array_slice($prices, 1) : [];

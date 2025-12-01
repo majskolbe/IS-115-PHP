@@ -5,6 +5,7 @@ Tar imot data fra ChatService via ChatController og formaterer
 data til HTML som vises i chatten.
 */
 class ChatResponseView {
+    //tar imot intent og data, velger riktig render-metode basert på intent
     public static function render(string $intent, array $data): string {
         switch ($intent) {
             case 'store_price_lookup':
@@ -94,6 +95,7 @@ class ChatResponseView {
         return $html;
     }
 
+    //formaterer fallbback-svar når intent ikke blir gjenkjent
     private static function renderFallback(array $data): string {
         $reply = $data['reply'] ?? "Beklager, jeg forstod ikke helt.";
         return "<p>$reply</p>";

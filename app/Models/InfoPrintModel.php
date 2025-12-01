@@ -1,4 +1,8 @@
 <?php
+/*
+Klasse med ansvar for å hente data fra db som skal vises i sidebarene
+Henter forslag til varer og deres EAN-kode og henter eksempelspørsmål
+*/
 class InfoPrintModel {
     private $db;
 
@@ -28,4 +32,4 @@ class InfoPrintModel {
         }
     }
 }
-?>
+

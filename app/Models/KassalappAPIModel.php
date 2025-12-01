@@ -21,7 +21,7 @@ class KassalappAPIModel {
         //oppretter gussle-klient med standardinstillinger
         $this->client = new Client([
             'base_uri' => self::BASE_URL,
-            'timeout'  => 10.0,
+            'timeout'  => 10.0, //maks ventetid for respons
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'Accept' => 'application/json',
